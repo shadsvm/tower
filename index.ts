@@ -9,7 +9,7 @@ const server = Bun.serve({
     const url = new URL(req.url);
     switch (url.pathname) {
       case "/": {
-        return new Response(Bun.file('index.tsx'));
+        return new Response("Blog!");
       }
       case "/blog": {
         return new Response("Blog!");

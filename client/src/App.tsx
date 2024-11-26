@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen bg-slate-900 text-white p-8">
+      <h1 className="text-4xl font-bold mb-4">Tower Defense RTS</h1>
+
+      {/* Test API endpoint */}
+      <button
+        onClick={async () => {
+          const res = await fetch("/api/health");
+          console.log(await res.text());
+        }}
+        className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
+      >
+        Test API
+      </button>
+
+      {/* Test WebSocket */}
+      <button
+        onClick={() => {
+          const ws = new WebSocket("ws://localhost:3000");
+          ws.onopen = () => console.log("Connected!");
+          ws.onmessage = (e) => console.log("Got message:", e.data);
+          ws.onerror = (e) => console.log("WS Error:", e);
+        }}
+        className="ml-4 px-4 py-2 bg-green-500 rounded hover:bg-green-600"
+      >
+        Test WebSocket
+      </button>
+    </div>
+  );
 }
 
-export default App
+export default App;
