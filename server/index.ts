@@ -1,29 +1,8 @@
 import type { ServerWebSocket } from "bun";
 import { nanoid } from "nanoid";
+import { initializeGame } from "./game";
+import type { ClientMessage, Room } from "../shared/types";
 
-// Types
-type Player = {
-  username: string;
-  ws: ServerWebSocket;
-};
-
-type Room = {
-  id: string;
-  players: Map<string, Player>;
-  state: "waiting" | "playing";
-};
-
-type ServerMessage =
-  | { type: "ROOM_CREATED"; roomId: string }
-  | { type: "PLAYER_JOINED"; username: string }
-  | { type: "GAME_START"; players: string[] }
-  | { type: "ERROR"; message: string };
-
-type ClientMessage =
-  | { type: "CREATE_ROOM"; username: string }
-  | { type: "JOIN_ROOM"; roomId: string; username: string };
-
-// Game state
 const rooms = new Map<string, Room>();
 
 const server = Bun.serve<undefined>({
@@ -65,7 +44,6 @@ const server = Bun.serve<undefined>({
             ws.send(JSON.stringify({ type: "ROOM_CREATED", roomId }));
             break;
           }
-
           case "JOIN_ROOM": {
             const room = rooms.get(msg.roomId);
             if (!room) {
@@ -103,6 +81,59 @@ const server = Bun.serve<undefined>({
               );
             });
             break;
+          }
+          case "START_GAME": {
+            const room = rooms.get(msg.roomId);
+            if (!room) {
+              ws.send(
+                JSON.stringify({
+                  type: "ERROR",
+                  message: "Room not found",
+                }),
+              );
+              return;
+            }
+
+            // Get first player (host) from room
+            const [hostUsername] = Array.from(room.players.keys());
+            if (msg.username !== hostUsername) {
+              ws.send(
+                JSON.stringify({
+                  type: "ERROR",
+                  message: "Only host can start the game",
+                }),
+              );
+              return;
+            }
+
+            if (room.players.size !== 2) {
+              ws.send(
+                JSON.stringify({
+                  type: "ERROR",
+                  message: "Waiting for second player",
+                }),
+              );
+              return;
+            }
+
+            const [player1, player2] = Array.from(room.players.entries());
+
+            const gameState = initializeGame(
+              { username: player1[0], ws: player1[1].ws },
+              { username: player2[0], ws: player2[1].ws },
+            );
+
+            // Send initial state to both players
+            room.players.forEach((player) => {
+              player.ws.send(
+                JSON.stringify({
+                  type: "GAME_STATE",
+                  state: gameState,
+                }),
+              );
+            });
+
+            room.state = "playing";
           }
         }
       } catch (e) {
