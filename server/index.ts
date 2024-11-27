@@ -1,7 +1,12 @@
 import type { ServerWebSocket } from "bun";
 import { nanoid } from "nanoid";
 import { initializeGame } from "./game";
-import type { ClientMessage, Room } from "../shared/types";
+import {
+  ClientMessage,
+  ServerMessage,
+  type ClientMessages,
+  type Room,
+} from "../shared/types";
 
 const rooms = new Map<string, Room>();
 
@@ -27,10 +32,10 @@ const server = Bun.serve<undefined>({
   websocket: {
     message(ws, message) {
       try {
-        const msg = JSON.parse(message as string) as ClientMessage;
+        const msg = JSON.parse(message as string) as ClientMessages;
 
         switch (msg.type) {
-          case "CREATE_ROOM": {
+          case ClientMessage.CREATE_ROOM: {
             const roomId = nanoid(6); // Short, but unique enough
             const room: Room = {
               id: roomId,
@@ -41,15 +46,17 @@ const server = Bun.serve<undefined>({
             };
 
             rooms.set(roomId, room);
-            ws.send(JSON.stringify({ type: "ROOM_CREATED", roomId }));
+            ws.send(
+              JSON.stringify({ type: ServerMessage.ROOM_CREATED, roomId }),
+            );
             break;
           }
-          case "JOIN_ROOM": {
+          case ClientMessage.JOIN_ROOM: {
             const room = rooms.get(msg.roomId);
             if (!room) {
               ws.send(
                 JSON.stringify({
-                  type: "ERROR",
+                  type: ServerMessage.ERROR,
                   message: "Room not found",
                 }),
               );
@@ -59,7 +66,7 @@ const server = Bun.serve<undefined>({
             if (room.players.size >= 2) {
               ws.send(
                 JSON.stringify({
-                  type: "ERROR",
+                  type: ServerMessage.ERROR,
                   message: "Room is full",
                 }),
               );
@@ -75,19 +82,19 @@ const server = Bun.serve<undefined>({
             room.players.forEach((player) => {
               player.ws.send(
                 JSON.stringify({
-                  type: "GAME_START",
+                  type: ServerMessage.GAME_READY,
                   players,
                 }),
               );
             });
             break;
           }
-          case "START_GAME": {
+          case ClientMessage.START_GAME: {
             const room = rooms.get(msg.roomId);
             if (!room) {
               ws.send(
                 JSON.stringify({
-                  type: "ERROR",
+                  type: ServerMessage.ERROR,
                   message: "Room not found",
                 }),
               );
@@ -99,7 +106,7 @@ const server = Bun.serve<undefined>({
             if (msg.username !== hostUsername) {
               ws.send(
                 JSON.stringify({
-                  type: "ERROR",
+                  type: ServerMessage.ERROR,
                   message: "Only host can start the game",
                 }),
               );
@@ -109,7 +116,7 @@ const server = Bun.serve<undefined>({
             if (room.players.size !== 2) {
               ws.send(
                 JSON.stringify({
-                  type: "ERROR",
+                  type: ServerMessage.ERROR,
                   message: "Waiting for second player",
                 }),
               );
@@ -127,7 +134,7 @@ const server = Bun.serve<undefined>({
             room.players.forEach((player) => {
               player.ws.send(
                 JSON.stringify({
-                  type: "GAME_STATE",
+                  type: ServerMessage.GAME_STATE,
                   state: gameState,
                 }),
               );
@@ -140,7 +147,7 @@ const server = Bun.serve<undefined>({
         console.error("Error handling message:", e);
         ws.send(
           JSON.stringify({
-            type: "ERROR",
+            type: ServerMessage.ERROR,
             message: "Invalid message format",
           }),
         );
