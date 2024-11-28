@@ -1,4 +1,5 @@
 import type { ServerWebSocket } from "bun";
+import type { Room } from "../shared/types";
 
 export type Position = {
   x: number;
@@ -30,11 +31,11 @@ const GRID_SIZE = 12;
 const INITIAL_POINTS = 50;
 const CASTLE_UNITS = 100;
 
-export function initializeGame(
-  player1: { username: string; ws: ServerWebSocket },
-  player2: { username: string; ws: ServerWebSocket },
-): GameState {
-  // Create empty grid
+export function initializeGame(room: Room): GameState {
+  const [player1Entry, player2Entry] = Array.from(room.players.entries());
+  const player1 = { username: player1Entry[0], ws: player1Entry[1].ws };
+  const player2 = { username: player2Entry[0], ws: player2Entry[1].ws };
+
   const grid: Tile[][] = Array(GRID_SIZE)
     .fill(null)
     .map(() =>
@@ -47,11 +48,10 @@ export function initializeGame(
         })),
     );
 
-  // Place castles in opposite corners
+  //
   const player1Castle: Position = { x: 0, y: 0 };
   const player2Castle: Position = { x: GRID_SIZE - 1, y: GRID_SIZE - 1 };
 
-  // Set castle tiles
   grid[player1Castle.y][player1Castle.x] = {
     owner: player1.username,
     units: CASTLE_UNITS,
@@ -64,7 +64,6 @@ export function initializeGame(
     type: "castle",
   };
 
-  // Initialize surrounding tiles for player 1
   const surroundingTiles = [
     { x: 1, y: 0 },
     { x: 0, y: 1 },
@@ -79,7 +78,6 @@ export function initializeGame(
     };
   });
 
-  // Initialize surrounding tiles for player 2
   const p2SurroundingTiles = surroundingTiles.map(({ x, y }) => ({
     x: GRID_SIZE - 1 - x,
     y: GRID_SIZE - 1 - y,
@@ -93,7 +91,6 @@ export function initializeGame(
     };
   });
 
-  // Create players map
   const players = new Map<string, Player>([
     [
       player1.username,
@@ -120,12 +117,11 @@ export function initializeGame(
   return {
     grid,
     players,
-    currentTurn: player1.username, // Player 1 starts
+    currentTurn: player1.username,
     turnNumber: 1,
   };
 }
 
-// Helper to calculate points per turn
 export function calculatePoints(grid: Tile[][], username: string): number {
   return grid
     .flat()

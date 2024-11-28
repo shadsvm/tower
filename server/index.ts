@@ -1,4 +1,3 @@
-import type { ServerWebSocket } from "bun";
 import { nanoid } from "nanoid";
 import { initializeGame } from "./game";
 import {
@@ -29,14 +28,18 @@ const server = Bun.serve<undefined>({
         return new Response("Not found", { status: 404 });
     }
   },
+  // ... other config
   websocket: {
     message(ws, message) {
       try {
         const msg = JSON.parse(message as string) as ClientMessages;
+        console.log("Received message:", msg); // Debug log
 
         switch (msg.type) {
           case ClientMessage.CREATE_ROOM: {
-            const roomId = nanoid(6); // Short, but unique enough
+            console.log("Creating room..."); // Debug log
+
+            const roomId = nanoid(6);
             const room: Room = {
               id: roomId,
               players: new Map([
@@ -46,11 +49,17 @@ const server = Bun.serve<undefined>({
             };
 
             rooms.set(roomId, room);
-            ws.send(
-              JSON.stringify({ type: ServerMessage.ROOM_CREATED, roomId }),
-            );
+            ws.subscribe(roomId); // Host subscribes to room
+
+            const response = {
+              type: ServerMessage.ROOM_CREATED,
+              roomId,
+            };
+            console.log("Sending response:", response); // Debug log
+            ws.send(JSON.stringify(response));
             break;
           }
+
           case ClientMessage.JOIN_ROOM: {
             const room = rooms.get(msg.roomId);
             if (!room) {
@@ -73,74 +82,24 @@ const server = Bun.serve<undefined>({
               return;
             }
 
-            // Add second player
+            // Second player joins
             room.players.set(msg.username, { username: msg.username, ws });
+            ws.subscribe(msg.roomId);
+
+            // Initialize and start game immediately
+            const gameState = initializeGame(room);
             room.state = "playing";
 
-            // Notify both players
-            const players = Array.from(room.players.keys());
-            room.players.forEach((player) => {
-              player.ws.send(
-                JSON.stringify({
-                  type: ServerMessage.GAME_READY,
-                  players,
-                }),
-              );
-            });
-            break;
-          }
-          case ClientMessage.START_GAME: {
-            const room = rooms.get(msg.roomId);
-            if (!room) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Room not found",
-                }),
-              );
-              return;
-            }
-
-            // Get first player (host) from room
-            const [hostUsername] = Array.from(room.players.keys());
-            if (msg.username !== hostUsername) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Only host can start the game",
-                }),
-              );
-              return;
-            }
-
-            if (room.players.size !== 2) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Waiting for second player",
-                }),
-              );
-              return;
-            }
-
-            const [player1, player2] = Array.from(room.players.entries());
-
-            const gameState = initializeGame(
-              { username: player1[0], ws: player1[1].ws },
-              { username: player2[0], ws: player2[1].ws },
+            // Notify everyone in room
+            server.publish(
+              msg.roomId,
+              JSON.stringify({
+                type: ServerMessage.GAME_STATE,
+                state: gameState,
+              }),
             );
 
-            // Send initial state to both players
-            room.players.forEach((player) => {
-              player.ws.send(
-                JSON.stringify({
-                  type: ServerMessage.GAME_STATE,
-                  state: gameState,
-                }),
-              );
-            });
-
-            room.state = "playing";
+            break;
           }
         }
       } catch (e) {
@@ -155,10 +114,17 @@ const server = Bun.serve<undefined>({
     },
 
     close(ws) {
-      // Clean up rooms when players disconnect
+      // We might want to notify other player in room
       for (const [roomId, room] of rooms.entries()) {
         for (const [username, player] of room.players.entries()) {
           if (player.ws === ws) {
+            server.publish(
+              roomId,
+              JSON.stringify({
+                type: ServerMessage.PLAYER_LEFT,
+                username,
+              }),
+            );
             room.players.delete(username);
             if (room.players.size === 0) {
               rooms.delete(roomId);

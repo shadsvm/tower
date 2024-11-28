@@ -1,40 +1,35 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
+import { ClientMessage, ClientMessages } from "@shared/types";
 
-export const Lobby = ({
-  username,
-  setStatus,
-  ws,
-}: {
+type LobbyProps = {
   username: string;
-  setStatus: Dispatch<SetStateAction<string>>;
-  ws: WebSocket;
-}) => {
-  const [roomId, setRoomId] = useState("");
+  roomId: string | null;
+  sendMessage: (msg: ClientMessages) => void;
+};
+
+const Lobby = ({ username, roomId, sendMessage }: LobbyProps) => {
+  const [joinRoomId, setJoinRoomId] = useState("");
 
   const copyRoomId = async () => {
-    await navigator.clipboard.writeText(roomId);
-    setStatus("Room ID copied to clipboard!");
+    if (roomId) {
+      await navigator.clipboard.writeText(roomId);
+    }
   };
 
   const createRoom = () => {
-    ws.send(
-      JSON.stringify({
-        type: "CREATE_ROOM",
-        username,
-      }),
-    );
+    sendMessage({
+      type: ClientMessage.CREATE_ROOM,
+      username,
+    });
   };
 
   const joinRoom = () => {
-    if (!roomId) return setStatus("Please enter room ID!");
-
-    ws.send(
-      JSON.stringify({
-        type: "JOIN_ROOM",
-        username,
-        roomId,
-      }),
-    );
+    if (!joinRoomId) return;
+    sendMessage({
+      type: ClientMessage.JOIN_ROOM,
+      username,
+      roomId: joinRoomId,
+    });
   };
 
   return (
@@ -47,8 +42,8 @@ export const Lobby = ({
           <div className="flex gap-2">
             <input
               type="text"
-              value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
+              value={joinRoomId}
+              onChange={(e) => setJoinRoomId(e.target.value)}
               placeholder="Room ID"
               className="nes-input"
             />
@@ -66,3 +61,5 @@ export const Lobby = ({
     </div>
   );
 };
+
+export default Lobby;
