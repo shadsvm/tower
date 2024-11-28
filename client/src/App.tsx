@@ -1,11 +1,13 @@
 import { useState } from "react";
 import Lobby from "./components/Lobby";
 import { useSocket } from "./hooks/useSocket";
+import { Game } from "./components/Game";
 
 export default function App() {
   const [username, setUsername] = useState("");
   const [input, setInput] = useState("");
-  const { state, status, sendMessage } = useSocket(username);
+
+  const { game, state, sendMessage } = useSocket(username);
 
   const validateUsername = (name: string) => {
     const trimmed = name.trim();
@@ -35,16 +37,20 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       <h1 className="text-center p-8 text-4xl">Tower Defense RTS</h1>
-      {status && (
+      {state.message && (
         <div className="nes-container is-dark">
-          <p>{status}</p>
+          <p>{state.message}</p>
         </div>
       )}
-      <Lobby
-        username={username}
-        roomId={state.roomId}
-        sendMessage={sendMessage}
-      />
+      {!game ? (
+        <Lobby
+          username={username}
+          roomId={state.roomId}
+          sendMessage={sendMessage}
+        />
+      ) : (
+        <Game state={game} username={username} />
+      )}
     </div>
   );
 }

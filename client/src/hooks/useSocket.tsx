@@ -1,27 +1,36 @@
 import { useState, useEffect } from "react";
-import { ServerMessage, ServerMessages, ClientMessages } from "@shared/types";
+import {
+  ServerMessage,
+  ServerMessages,
+  ClientMessages,
+  GameState,
+} from "@shared/types";
 
 type SocketState = {
   isConnected: boolean;
   roomId: string | null;
+  message: string | null;
 };
 
 export const useSocket = (username: string) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [game, setGame] = useState<GameState | null>(null);
   const [state, setState] = useState<SocketState>({
     isConnected: false,
     roomId: null,
+    message: null,
   });
-  const [status, setStatus] = useState("");
 
   useEffect(() => {
     if (!username) return;
-
     const socket = new WebSocket("ws://localhost:3000");
 
     socket.onopen = () => {
-      setState((prev) => ({ ...prev, isConnected: true }));
-      setStatus("Connected!");
+      setState((prev) => ({
+        ...prev,
+        isConnected: true,
+        message: "Connected!",
+      }));
     };
 
     socket.onmessage = (event) => {
@@ -30,30 +39,42 @@ export const useSocket = (username: string) => {
 
       switch (data.type) {
         case ServerMessage.ROOM_CREATED:
-          setState((prev) => ({ ...prev, roomId: data.roomId }));
-          setStatus(`Room created! Share this ID: ${data.roomId}`);
+          setState((prev) => ({
+            ...prev,
+            roomId: data.roomId,
+            message: `Room created! Share this ID: ${data.roomId}`,
+          }));
           break;
         case ServerMessage.PLAYER_JOINED:
-          setStatus(`Player ${data.username} joined!`);
+          setState((prev) => ({
+            ...prev,
+            message: `Player ${data.username} joined!`,
+          }));
           break;
         case ServerMessage.GAME_STATE:
-          setStatus("Game starting!");
-          // Handle game state
+          setState((prev) => ({ ...prev, message: "Game starting!" }));
+          setGame(data?.state as GameState);
           break;
         case ServerMessage.ERROR:
-          setStatus(`Error: ${data.message}`);
+          setState((prev) => ({ ...prev, message: `Error: ${data.message}` }));
           break;
       }
     };
 
     socket.onerror = () => {
-      setStatus("WebSocket error!");
-      setState((prev) => ({ ...prev, isConnected: false }));
+      setState((prev) => ({
+        ...prev,
+        isConnected: false,
+        message: "WebSocket Error",
+      }));
     };
 
     socket.onclose = () => {
-      setStatus("Disconnected");
-      setState((prev) => ({ ...prev, isConnected: false }));
+      setState((prev) => ({
+        ...prev,
+        isConnected: false,
+        message: "Disconnected",
+      }));
     };
 
     setWs(socket);
@@ -70,8 +91,8 @@ export const useSocket = (username: string) => {
   };
 
   return {
+    game,
     state,
-    status,
     sendMessage,
   };
 };

@@ -1,5 +1,5 @@
 import type { ServerWebSocket } from "bun";
-import type { Room } from "../shared/types";
+import type { GamePlayer, GameState, Room, Tile } from "../shared/types";
 
 export type Position = {
   x: number;
@@ -14,27 +14,14 @@ export type Player = {
   ws: ServerWebSocket;
 };
 
-export type Tile = {
-  owner: string | null;
-  units: number;
-  type: "empty" | "castle" | "tower";
-};
-
-export type GameState = {
-  grid: Tile[][];
-  players: Map<string, Player>;
-  currentTurn: string;
-  turnNumber: number;
-};
-
 const GRID_SIZE = 12;
 const INITIAL_POINTS = 50;
 const CASTLE_UNITS = 100;
 
 export function initializeGame(room: Room): GameState {
   const [player1Entry, player2Entry] = Array.from(room.players.entries());
-  const player1 = { username: player1Entry[0], ws: player1Entry[1].ws };
-  const player2 = { username: player2Entry[0], ws: player2Entry[1].ws };
+  const player1Username = player1Entry[0];
+  const player2Username = player2Entry[0];
 
   const grid: Tile[][] = Array(GRID_SIZE)
     .fill(null)
@@ -48,22 +35,39 @@ export function initializeGame(room: Room): GameState {
         })),
     );
 
-  //
   const player1Castle: Position = { x: 0, y: 0 };
   const player2Castle: Position = { x: GRID_SIZE - 1, y: GRID_SIZE - 1 };
 
+  // Set castles
   grid[player1Castle.y][player1Castle.x] = {
-    owner: player1.username,
+    owner: player1Username,
     units: CASTLE_UNITS,
     type: "castle",
   };
 
   grid[player2Castle.y][player2Castle.x] = {
-    owner: player2.username,
+    owner: player2Username,
     units: CASTLE_UNITS,
     type: "castle",
   };
 
+  // Create players object
+  const players: Record<string, GamePlayer> = {
+    [player1Username]: {
+      username: player1Username,
+      points: INITIAL_POINTS,
+      castle: player1Castle,
+      actionTaken: false,
+    },
+    [player2Username]: {
+      username: player2Username,
+      points: INITIAL_POINTS,
+      castle: player2Castle,
+      actionTaken: false,
+    },
+  };
+
+  // Set surrounding tiles
   const surroundingTiles = [
     { x: 1, y: 0 },
     { x: 0, y: 1 },
@@ -72,7 +76,7 @@ export function initializeGame(room: Room): GameState {
 
   surroundingTiles.forEach(({ x, y }) => {
     grid[y][x] = {
-      owner: player1.username,
+      owner: player1Username,
       units: 0,
       type: "empty",
     };
@@ -85,39 +89,16 @@ export function initializeGame(room: Room): GameState {
 
   p2SurroundingTiles.forEach(({ x, y }) => {
     grid[y][x] = {
-      owner: player2.username,
+      owner: player2Username,
       units: 0,
       type: "empty",
     };
   });
 
-  const players = new Map<string, Player>([
-    [
-      player1.username,
-      {
-        username: player1.username,
-        points: INITIAL_POINTS,
-        castle: player1Castle,
-        actionTaken: false,
-        ws: player1.ws,
-      },
-    ],
-    [
-      player2.username,
-      {
-        username: player2.username,
-        points: INITIAL_POINTS,
-        castle: player2Castle,
-        actionTaken: false,
-        ws: player2.ws,
-      },
-    ],
-  ]);
-
   return {
     grid,
     players,
-    currentTurn: player1.username,
+    currentTurn: player1Username,
     turnNumber: 1,
   };
 }
