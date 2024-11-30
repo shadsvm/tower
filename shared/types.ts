@@ -56,9 +56,31 @@ export enum ClientMessage {
   CREATE_ROOM = "CREATE_ROOM",
   JOIN_ROOM = "JOIN_ROOM",
   END_TURN = "END_TURN", // New message
+  BUY_UNIT = "BUY_UNIT",
 }
 
 export type ClientMessages =
   | { type: ClientMessage.CREATE_ROOM; username: string }
   | { type: ClientMessage.JOIN_ROOM; roomId: string; username: string }
-  | { type: ClientMessage.END_TURN; roomId: string; username: string }; // New type
+  | { type: ClientMessage.END_TURN; roomId: string; username: string }
+  | {
+      type: ClientMessage.BUY_UNIT;
+      username: string;
+      roomId: string;
+      unitType: UnitType;
+      position: Position;
+    };
+
+export enum UnitType {
+  SOLDIER = "SOLDIER",
+  HORSEMAN = "HORSEMAN",
+  SMALL_TOWER = "SMALL_TOWER",
+  LARGE_TOWER = "LARGE_TOWER",
+}
+
+export const UnitCosts: Record<UnitType, number> = {
+  [UnitType.SOLDIER]: 10,
+  [UnitType.HORSEMAN]: 20,
+  [UnitType.SMALL_TOWER]: 30,
+  [UnitType.LARGE_TOWER]: 50,
+};

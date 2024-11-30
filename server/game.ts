@@ -47,7 +47,7 @@ export function initializeGame(room: Room): GameState {
   const player1Castle: Position = { x: 0, y: 0 };
   const player2Castle: Position = { x: GRID_SIZE - 1, y: GRID_SIZE - 1 };
 
-  // Set castles
+  // Only set castles, remove surrounding tiles setup
   grid[player1Castle.y][player1Castle.x] = {
     owner: player1Username,
     units: CASTLE_UNITS,
@@ -75,34 +75,6 @@ export function initializeGame(room: Room): GameState {
       actionTaken: false,
     },
   };
-
-  // Set surrounding tiles
-  const surroundingTiles = [
-    { x: 1, y: 0 },
-    { x: 0, y: 1 },
-    { x: 1, y: 1 },
-  ];
-
-  surroundingTiles.forEach(({ x, y }) => {
-    grid[y][x] = {
-      owner: player1Username,
-      units: 0,
-      type: "empty",
-    };
-  });
-
-  const p2SurroundingTiles = surroundingTiles.map(({ x, y }) => ({
-    x: GRID_SIZE - 1 - x,
-    y: GRID_SIZE - 1 - y,
-  }));
-
-  p2SurroundingTiles.forEach(({ x, y }) => {
-    grid[y][x] = {
-      owner: player2Username,
-      units: 0,
-      type: "empty",
-    };
-  });
 
   const initialState = {
     grid,
