@@ -35,13 +35,8 @@ export default function App() {
     );
 
   return (
-    <div className="min-h-screen bg-stone-950 text-white">
+    <div className="min-h-screen bg-stone-800 text-white">
       <h1 className="text-center p-8 text-4xl">Tower 🏰</h1>
-      {/* {state.message && (
-        <div className="nes-container is-dark">
-          <p>{state.message}</p>
-        </div>
-      )} */}
       {!game ? (
         <Lobby
           username={username}

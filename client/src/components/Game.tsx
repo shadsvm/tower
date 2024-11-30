@@ -63,7 +63,7 @@ export const Game = ({ state, username, sendMessage, roomId }: GameProps) => {
         onEndTurn={handleEndTurn}
       />
       <div className="text-lg">Points: {myData.points}</div>
-      <div className="grid grid-cols-12 gap-1">
+      <div className="grid grid-cols-12 perspective-distant transform-3d rotate-x-51 rotate-z-43 shadow-3xl  shadow-white transition-all duration-500 hover:-translate-y-4 hover:rotate-x-49 hover:rotate-z-38 gap-1">
         {state.grid.map((row, y) =>
           row.map((tile, x) => (
             <TileComponent key={`${x}-${y}`} tile={tile} username={username} />
