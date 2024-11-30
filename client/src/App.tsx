@@ -49,7 +49,12 @@ export default function App() {
           sendMessage={sendMessage}
         />
       ) : (
-        <Game state={game} username={username} />
+        <Game
+          state={game}
+          username={username}
+          roomId={state.roomId!}
+          sendMessage={sendMessage}
+        />
       )}
     </div>
   );

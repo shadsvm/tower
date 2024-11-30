@@ -18,6 +18,7 @@ export type GamePlayer = {
 };
 
 export type GameState = {
+  roomId: string; // Add this
   grid: Tile[][];
   players: Record<string, GamePlayer>;
   currentTurn: string;
@@ -44,10 +45,6 @@ export enum ServerMessage {
   ERROR = "ERROR",
 }
 
-export enum ClientMessage {
-  CREATE_ROOM = "CREATE_ROOM",
-  JOIN_ROOM = "JOIN_ROOM",
-}
 export type ServerMessages =
   | { type: ServerMessage.ROOM_CREATED; roomId: string }
   | { type: ServerMessage.PLAYER_JOINED; username: string }
@@ -55,6 +52,13 @@ export type ServerMessages =
   | { type: ServerMessage.GAME_STATE; state: GameState } // Changed from string[]
   | { type: ServerMessage.ERROR; message: string };
 
+export enum ClientMessage {
+  CREATE_ROOM = "CREATE_ROOM",
+  JOIN_ROOM = "JOIN_ROOM",
+  END_TURN = "END_TURN", // New message
+}
+
 export type ClientMessages =
   | { type: ClientMessage.CREATE_ROOM; username: string }
-  | { type: ClientMessage.JOIN_ROOM; roomId: string; username: string };
+  | { type: ClientMessage.JOIN_ROOM; roomId: string; username: string }
+  | { type: ClientMessage.END_TURN; roomId: string; username: string }; // New type

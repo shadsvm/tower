@@ -1,9 +1,15 @@
 import { nanoid } from "nanoid";
-import { initializeGame } from "./game";
+import {
+  calculatePoints,
+  getGameState,
+  initializeGame,
+  setGameState,
+} from "./game";
 import {
   ClientMessage,
   ServerMessage,
   type ClientMessages,
+  type GameState,
   type Room,
 } from "../shared/types";
 
@@ -100,6 +106,58 @@ const server = Bun.serve<undefined>({
             );
 
             break;
+          }
+          case ClientMessage.END_TURN: {
+            const room = rooms.get(msg.roomId);
+            if (!room) return;
+
+            // Get game state
+            const gameState = getGameState(room.id); // We'll create this function
+            if (!gameState) return;
+
+            // Validate it's actually their turn
+            if (gameState.currentTurn !== msg.username) {
+              ws.send(
+                JSON.stringify({
+                  type: ServerMessage.ERROR,
+                  message: "Not your turn!",
+                }),
+              );
+              return;
+            }
+
+            // Calculate points for next turn
+            const players = gameState.players;
+            Object.keys(players).forEach((username) => {
+              players[username].points += calculatePoints(
+                gameState.grid,
+                username,
+              );
+              players[username].actionTaken = false; // Reset action flag
+            });
+
+            // Switch turns
+            const playerUsernames = Object.keys(players);
+            const currentIndex = playerUsernames.indexOf(gameState.currentTurn);
+            const nextPlayer =
+              playerUsernames[(currentIndex + 1) % playerUsernames.length];
+
+            const newState: GameState = {
+              ...gameState,
+              players,
+              currentTurn: nextPlayer,
+              turnNumber: gameState.turnNumber + 1,
+            };
+
+            // Store and broadcast new state
+            setGameState(room.id, newState); // We'll create this function
+            server.publish(
+              msg.roomId,
+              JSON.stringify({
+                type: ServerMessage.GAME_STATE,
+                state: newState,
+              }),
+            );
           }
         }
       } catch (e) {

@@ -1,6 +1,15 @@
 import type { ServerWebSocket } from "bun";
 import type { GamePlayer, GameState, Room, Tile } from "../shared/types";
+// Game state storage
+const gameStates = new Map<string, GameState>();
 
+export function setGameState(roomId: string, state: GameState) {
+  gameStates.set(roomId, state);
+}
+
+export function getGameState(roomId: string): GameState | undefined {
+  return gameStates.get(roomId);
+}
 export type Position = {
   x: number;
   y: number;
@@ -95,12 +104,17 @@ export function initializeGame(room: Room): GameState {
     };
   });
 
-  return {
+  const initialState = {
     grid,
     players,
     currentTurn: player1Username,
     turnNumber: 1,
+    roomId: room.id,
   };
+
+  setGameState(room.id, initialState);
+
+  return initialState;
 }
 
 export function calculatePoints(grid: Tile[][], username: string): number {

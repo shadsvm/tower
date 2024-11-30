@@ -1,8 +1,10 @@
-import { GameState, Tile } from "@shared/types";
+import { ClientMessages, GameState, Tile } from "@shared/types";
 
 type GameProps = {
   state: GameState;
   username: string;
+  roomId: string;
+  sendMessage: (msg: ClientMessages) => void;
 };
 
 const TileComponent = ({
@@ -37,16 +39,29 @@ const TileComponent = ({
     </div>
   );
 };
+import { TurnInfo } from "./TurnInfo";
+import { ClientMessage } from "@shared/types";
 
-export const Game = ({ state, username }: GameProps) => {
+export const Game = ({ state, username, sendMessage, roomId }: GameProps) => {
   const isMyTurn = state.currentTurn === username;
   const myData = state.players[username];
 
+  const handleEndTurn = () => {
+    sendMessage({
+      type: ClientMessage.END_TURN,
+      username,
+      roomId,
+    });
+  };
+
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="text-xl">
-        {isMyTurn ? "Your turn!" : "Opponent's turn"}
-      </div>
+      <TurnInfo
+        isMyTurn={isMyTurn}
+        currentTurn={state.currentTurn}
+        turnNumber={state.turnNumber}
+        onEndTurn={handleEndTurn}
+      />
       <div className="text-lg">Points: {myData.points}</div>
       <div className="grid grid-cols-12 gap-1">
         {state.grid.map((row, y) =>
