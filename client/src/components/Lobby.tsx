@@ -1,35 +1,22 @@
+import { ClientMessage } from "@shared/types";
 import { useState } from "react";
-import { ClientMessage, ClientMessages } from "@shared/types";
+import { UseSocket } from "src/hooks/useSocket";
 
-type LobbyProps = {
-  username: string;
-  roomId: string | null;
-  sendMessage: (msg: ClientMessages) => void;
-};
-
-const Lobby = ({ username, roomId, sendMessage }: LobbyProps) => {
+const Lobby = ({ state, send }: UseSocket) => {
   const [joinRoomId, setJoinRoomId] = useState("");
 
   const copyRoomId = async () => {
-    if (roomId) {
-      await navigator.clipboard.writeText(roomId);
-    }
+    if (!state.roomId) return;
+    await navigator.clipboard.writeText(state.roomId);
   };
 
   const createRoom = () => {
-    sendMessage({
-      type: ClientMessage.CREATE_ROOM,
-      username,
-    });
+    send(ClientMessage.CREATE_ROOM);
   };
 
   const joinRoom = () => {
     if (!joinRoomId) return;
-    sendMessage({
-      type: ClientMessage.JOIN_ROOM,
-      username,
-      roomId: joinRoomId,
-    });
+    send(ClientMessage.JOIN_ROOM);
   };
 
   return (
@@ -39,21 +26,22 @@ const Lobby = ({ username, roomId, sendMessage }: LobbyProps) => {
           <button onClick={createRoom} className="nes-btn is-success">
             Host Game
           </button>
-          <div className="flex gap-2">
+          <div className="nes-field text-white flex gap-2">
             <input
+              id="roomid-input"
               type="text"
               value={joinRoomId}
               onChange={(e) => setJoinRoomId(e.target.value)}
               placeholder="Room ID"
-              className="nes-input"
+              className="nes-input is-dark"
             />
             <button onClick={joinRoom} className="nes-btn is-warning">
               Join Game
             </button>
           </div>
         </div>
-        {roomId && (
-          <button onClick={copyRoomId} className="nes-btn is-primary">
+        {state.roomId && (
+          <button onClick={copyRoomId} className="nes-btn is-disabled">
             Copy Room ID
           </button>
         )}

@@ -2,55 +2,54 @@ import { useState } from "react";
 import Lobby from "./components/Lobby";
 import { useSocket } from "./hooks/useSocket";
 import { Game } from "./components/Game";
+import { ActionPanel } from "./components/ActionPanel";
+import Layout from "./Layout";
 
 export default function App() {
   const [username, setUsername] = useState("");
   const [input, setInput] = useState("");
 
-  const { game, state, sendMessage } = useSocket(username);
+  const socket = useSocket(username);
 
   const validateUsername = (name: string) => {
     const trimmed = name.trim();
     return trimmed.length >= 2 && trimmed.length <= 15;
   };
 
-  if (!state.isConnected)
+  if (!socket.state.isConnected)
     return (
-      <div className="flex flex-col items-center gap-4 p-8">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter username (2-15 chars)"
-          className="nes-input"
-        />
-        <button
-          onClick={() => setUsername(input)}
-          className="nes-btn is-primary"
-          disabled={!validateUsername(input)}
-        >
-          Connect
-        </button>
-      </div>
+      <Layout>
+        <div className="h-full flex flex-col justify-center items-center gap-8 pb-44">
+          <h1 className="text-4xl">What is your name?</h1>
+          <div className="nes-field is-inline text-white flex gap-2">
+            <input
+              id="username-input"
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Enter username (2-15 chars)"
+              className="nes-input is-dark"
+            />
+            <button
+              onClick={() => setUsername(input)}
+              className="nes-btn is-primary"
+              disabled={!validateUsername(input)}
+            >
+              Connect
+            </button>
+          </div>
+        </div>
+      </Layout>
     );
-
+  else if (!socket.game)
+    return (
+      <Layout>
+        <Lobby {...socket} />
+      </Layout>
+    );
   return (
-    <div className="min-h-screen bg-stone-800 text-white">
-      <h1 className="text-center p-8 text-4xl">Tower 🏰</h1>
-      {!game ? (
-        <Lobby
-          username={username}
-          roomId={state.roomId}
-          sendMessage={sendMessage}
-        />
-      ) : (
-        <Game
-          state={game}
-          username={username}
-          roomId={state.roomId!}
-          sendMessage={sendMessage}
-        />
-      )}
-    </div>
+    <Layout slot={<ActionPanel {...socket} />}>
+      <Game {...socket} />
+    </Layout>
   );
 }

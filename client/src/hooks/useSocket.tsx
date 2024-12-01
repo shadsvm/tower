@@ -2,9 +2,16 @@ import { useState, useEffect } from "react";
 import {
   ServerMessage,
   ServerMessages,
-  ClientMessages,
   GameState,
+  ClientMessage,
 } from "@shared/types";
+
+export type UseSocket = {
+  username: string;
+  state: SocketState;
+  game: GameState | null;
+  send: (type: ClientMessage) => void;
+};
 
 type SocketState = {
   isConnected: boolean;
@@ -12,7 +19,7 @@ type SocketState = {
   roomId: string | null;
 };
 
-export const useSocket = (username: string) => {
+export const useSocket = (username: string): UseSocket => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [state, setState] = useState<SocketState>({
     isConnected: false,
@@ -64,19 +71,18 @@ export const useSocket = (username: string) => {
     };
   }, [username]);
 
-  const sendMessage = (message: ClientMessages) => {
+  const send = (type: ClientMessage) => {
     if (!ws) return;
     // Ensure roomId is always set from state
-    if ("roomId" in message && !message.roomId) {
-      message.roomId = state.roomId!;
-    }
+    const message = { type, username, roomId: state.roomId };
     console.log("Sending:", message);
     ws.send(JSON.stringify(message));
   };
 
   return {
+    username,
     state,
     game,
-    sendMessage,
+    send,
   };
 };

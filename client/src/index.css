@@ -6,3 +6,7 @@
   --color-primary: var(--color-blue-500);
   --color-error: var(--color-red-500);
 }
+
+body {
+  @apply text-white bg-neutral-800;
+}
