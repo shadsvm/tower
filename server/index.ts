@@ -8,6 +8,8 @@ import {
 import {
   ClientMessage,
   ServerMessage,
+  UnitCosts,
+  UnitType,
   type ClientMessages,
   type GameState,
   type Room,
@@ -158,6 +160,113 @@ const server = Bun.serve<undefined>({
                 state: newState,
               }),
             );
+            break;
+          }
+          // In the message switch
+          case ClientMessage.BUY_UNIT: {
+            const room = rooms.get(msg.roomId);
+            if (!room) return;
+
+            const gameState = getGameState(room.id);
+            if (!gameState) return;
+
+            // Validate turn
+            if (gameState.currentTurn !== msg.username) {
+              ws.send(
+                JSON.stringify({
+                  type: ServerMessage.ERROR,
+                  message: "Not your turn!",
+                }),
+              );
+              return;
+            }
+
+            // Get player data
+            const player = gameState.players[msg.username];
+            if (player.actionTaken) {
+              ws.send(
+                JSON.stringify({
+                  type: ServerMessage.ERROR,
+                  message: "You've already taken an action this turn!",
+                }),
+              );
+              return;
+            }
+
+            // Check if they can afford it
+            const cost = UnitCosts[msg.unitType as UnitType];
+            if (player.points < cost) {
+              ws.send(
+                JSON.stringify({
+                  type: ServerMessage.ERROR,
+                  message: "Not enough points!",
+                }),
+              );
+              return;
+            }
+
+            // Validate placement position
+            const { x, y } = msg.position;
+            const castle = player.castle;
+
+            // Must be adjacent to castle
+            const isAdjacent =
+              Math.abs(x - castle.x) <= 1 &&
+              Math.abs(y - castle.y) <= 1 &&
+              !(x === castle.x && y === castle.y);
+
+            if (!isAdjacent) {
+              ws.send(
+                JSON.stringify({
+                  type: ServerMessage.ERROR,
+                  message: "Must place units adjacent to your castle!",
+                }),
+              );
+              return;
+            }
+
+            // Check if tile is available
+            const targetTile = gameState.grid[y][x];
+            if (targetTile.type === "castle" || targetTile.type === "tower") {
+              ws.send(
+                JSON.stringify({
+                  type: ServerMessage.ERROR,
+                  message: "Can't place units on buildings!",
+                }),
+              );
+              return;
+            }
+
+            // All validations passed, place the unit
+            const unitCount = msg.unitType === UnitType.HORSEMAN ? 5 : 10;
+
+            gameState.grid[y][x] = {
+              owner: msg.username,
+              units: unitCount,
+              type:
+                msg.unitType === UnitType.SMALL_TOWER ||
+                msg.unitType === UnitType.LARGE_TOWER
+                  ? "tower"
+                  : "empty",
+            };
+
+            // Deduct points and mark action taken
+            player.points -= cost;
+            player.actionTaken = true;
+
+            // Update game state
+            setGameState(room.id, gameState);
+
+            // Broadcast new state
+            server.publish(
+              msg.roomId,
+              JSON.stringify({
+                type: ServerMessage.GAME_STATE,
+                state: gameState,
+              }),
+            );
+
+            break;
           }
         }
       } catch (e) {

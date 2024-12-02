@@ -4,13 +4,14 @@ import {
   ServerMessages,
   GameState,
   ClientMessage,
+  UnitType,
 } from "@shared/types";
 
 export type UseSocket = {
   username: string;
   state: SocketState;
   game: GameState | null;
-  send: (type: ClientMessage) => void;
+  send: (data: any) => void;
 };
 
 type SocketState = {
@@ -71,10 +72,24 @@ export const useSocket = (username: string): UseSocket => {
     };
   }, [username]);
 
-  const send = (type: ClientMessage) => {
+  const send = ({
+    type,
+    unitType,
+    position,
+  }: {
+    type: ClientMessage;
+    unitType?: UnitType;
+    position?: Position;
+  }) => {
     if (!ws) return;
     // Ensure roomId is always set from state
-    const message = { type, username, roomId: state.roomId };
+    const message = {
+      type,
+      unitType,
+      position,
+      username,
+      roomId: state.roomId,
+    };
     console.log("Sending:", message);
     ws.send(JSON.stringify(message));
   };

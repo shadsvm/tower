@@ -1,8 +1,6 @@
 import { useState } from "react";
-import Lobby from "./components/Lobby";
 import { useSocket } from "./hooks/useSocket";
 import { Game } from "./components/Game";
-import { ActionPanel } from "./components/ActionPanel";
 import Layout from "./Layout";
 
 export default function App() {
@@ -41,15 +39,7 @@ export default function App() {
         </div>
       </Layout>
     );
-  else if (!socket.game)
-    return (
-      <Layout>
-        <Lobby {...socket} />
-      </Layout>
-    );
-  return (
-    <Layout slot={<ActionPanel {...socket} />}>
-      <Game {...socket} />
-    </Layout>
-  );
+  else if (!socket.game) {
+    return <Game {...{ socket }} />;
+  }
 }
