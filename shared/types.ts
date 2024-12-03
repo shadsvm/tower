@@ -72,15 +72,11 @@ export type ClientMessages =
     };
 
 export enum UnitType {
-  SOLDIER = "SOLDIER",
-  HORSEMAN = "HORSEMAN",
-  SMALL_TOWER = "SMALL_TOWER",
-  LARGE_TOWER = "LARGE_TOWER",
+  SOLDIER = "🥷",
+  TOWER = "🗼",
 }
 
 export const UnitCosts: Record<UnitType, number> = {
   [UnitType.SOLDIER]: 10,
-  [UnitType.HORSEMAN]: 20,
-  [UnitType.SMALL_TOWER]: 30,
-  [UnitType.LARGE_TOWER]: 50,
+  [UnitType.TOWER]: 50,
 };

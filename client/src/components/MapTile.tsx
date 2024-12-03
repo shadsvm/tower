@@ -8,15 +8,15 @@ export const MapTile = ({
 }: {
   tile: Tile;
   username: string;
-} & ComponentProps<"button">) => {
+} & ComponentProps<"div">) => {
   const getColor = () => {
     if (!tile.owner) return "bg-gray-700";
     return tile.owner === username ? "bg-blue-500" : "bg-red-500";
   };
 
   return (
-    <button
-      className={`w-12 h-12 ${getColor()} opacity-75 disabled:opacity-50 hover:opacity-100 border border-gray-600 relative`}
+    <div
+      className={`w-12 h-12 ${getColor()}  disabled:opacity-50 hover:bg-gray-500 shadow shadow-white relative`}
       {...rest}
     >
       {tile.type === "castle" && (
@@ -34,6 +34,6 @@ export const MapTile = ({
           {tile.units}
         </span>
       )}
-    </button>
+    </div>
   );
 };

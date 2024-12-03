@@ -1,63 +1,97 @@
 import { UseSocket } from "src/hooks/useSocket";
 import { MapTile } from "./MapTile";
-import Layout from "src/Layout";
 import { ActionPanel } from "./ActionPanel";
 import { useState } from "react";
 import { UnitType, Position, ClientMessage } from "@shared/types";
+import Layout from "./Layout";
 
 export interface ActionResolve {
-  type?: keyof typeof ClientMessage;
-  unitType?: keyof typeof UnitType;
+  type?: ClientMessage;
+  unitType?: UnitType;
+  position?: Position;
 }
 
-export const Game = ({ socket }: { socket: UseSocket }) => {
-  const [actionBuffer, setActionBuffer] = useState<ActionResolve>({
-    type: undefined,
-    unitType: undefined,
-  });
+export function Game(socket: UseSocket) {
+  const debug = false;
+  const [selectedUnit, setSelectedUnit] = useState<UnitType | undefined>(
+    undefined,
+  );
+  if (!socket.game) return;
+  const { game, username } = socket;
+
   const handleAction = (position: Position) => {
-    console.log("handleAction", actionBuffer, position);
-    if (actionBuffer.type && actionBuffer.unitType) {
-      if (actionBuffer.type === ClientMessage.BUY_UNIT) {
-        socket.send({
-          type: ClientMessage.BUY_UNIT,
-          unitType: actionBuffer.unitType,
-          position,
-        });
-      }
-    }
+    if (!selectedUnit) return;
+    console.log("handleAction", selectedUnit, position);
+    socket.send({
+      type: ClientMessage.BUY_UNIT,
+      unitType: selectedUnit,
+      position,
+    });
+    setSelectedUnit(undefined);
   };
 
-  if (!socket.game)
-    return (
-      <div>
-        <p>something went wrong</p>
-      </div>
-    );
-
-  const { game, username } = socket;
-  const myData = game.players[username];
   return (
-    <Layout slot={<ActionPanel {...{ ...socket, setActionBuffer }} />}>
-      <div className="flex flex-col items-center gap-4">
-        <div className="text-lg">Points: {myData.points}</div>
+    <Layout
+      slot={
+        <ActionPanel
+          disabled={game.currentTurn !== username}
+          socket={socket}
+          selectedUnit={selectedUnit}
+          setSelectedUnit={setSelectedUnit}
+        />
+      }
+    >
+      {debug && (
+        <pre>
+          {JSON.stringify(
+            {
+              ...socket.state,
+              currentTurn: socket.game?.currentTurn,
+              buffer: selectedUnit,
+              username: socket.username,
+              points: socket.game?.players[socket.username].points,
+            },
+            null,
+            2,
+          )}
+        </pre>
+      )}
+      <div className="container mx-auto w-full flex justify-around my-8 items-center">
         <div className="text-xl">
           {game.currentTurn === username
             ? "Your turn!"
             : `Waiting for ${game.currentTurn}`}
         </div>
-        <div className="grid grid-cols-12 perspective-distant transform-3d rotate-x-51 rotate-z-43 shadow-3xl  shadow-white transition-all duration-500 hover:-translate-y-4 hover:rotate-x-49 hover:rotate-z-38 gap-1">
+      </div>
+      <div
+        className="flex flex-col items-center gap-4 z-0"
+        onClick={() => {
+          setSelectedUnit(undefined);
+        }}
+      >
+        <div className="z-0 grid grid-cols-12 perspective-distant transform-3d rotate-x-51 rotate-z-43 shadow-3xl  shadow-white transition-all duration-500 hover:-translate-y-4 hover:rotate-x-49 hover:rotate-z-38 gap-2">
           {game.grid.map((row, y) =>
             row.map((tile, x) => (
               <MapTile
                 key={`${x}-${y}`}
-                onClick={() => handleAction({ x, y })}
-                {...{ tile, username, disabled: !actionBuffer }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAction({ x, y });
+                }}
+                {...{ tile, username, selectedUnit, disabled: !selectedUnit }}
               />
             )),
           )}
         </div>
+        <div
+          className={
+            "px-4 py-2.5 border ring ring-gray-700 ring-offset-4 border-gray-300 bg-neutral-900/50 disabled:cursor-default transition"
+          }
+        >
+          <p className="title">Info</p>
+          <p>{socket.state.message}</p>
+        </div>
       </div>
     </Layout>
   );
-};
+}

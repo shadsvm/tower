@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import {
+  Position,
   ServerMessage,
   ServerMessages,
   GameState,
@@ -7,11 +8,18 @@ import {
   UnitType,
 } from "@shared/types";
 
+interface SocketSend {
+  type: ClientMessage;
+  unitType?: UnitType;
+  position?: Position;
+  roomId?: string;
+}
+
 export type UseSocket = {
   username: string;
   state: SocketState;
   game: GameState | null;
-  send: (data: any) => void;
+  send: (data: SocketSend) => void;
 };
 
 type SocketState = {
@@ -72,23 +80,14 @@ export const useSocket = (username: string): UseSocket => {
     };
   }, [username]);
 
-  const send = ({
-    type,
-    unitType,
-    position,
-  }: {
-    type: ClientMessage;
-    unitType?: UnitType;
-    position?: Position;
-  }) => {
+  const send = (props: SocketSend) => {
     if (!ws) return;
     // Ensure roomId is always set from state
+    console.log("socket.send:");
     const message = {
-      type,
-      unitType,
-      position,
+      ...props,
       username,
-      roomId: state.roomId,
+      roomId: state.roomId || props.roomId,
     };
     console.log("Sending:", message);
     ws.send(JSON.stringify(message));

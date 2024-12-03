@@ -1,9 +1,9 @@
 import { ClientMessage } from "@shared/types";
 import { useState } from "react";
 import { UseSocket } from "src/hooks/useSocket";
-import Layout from "src/Layout";
+import Layout from "./Layout";
 
-const Lobby = ({ state, send }: UseSocket) => {
+export default function Lobby({ state, send }: UseSocket) {
   const [joinRoomId, setJoinRoomId] = useState("");
 
   const copyRoomId = async () => {
@@ -17,11 +17,11 @@ const Lobby = ({ state, send }: UseSocket) => {
 
   const joinRoom = () => {
     if (!joinRoomId) return;
-    send({ type: ClientMessage.JOIN_ROOM });
+    send({ type: ClientMessage.JOIN_ROOM, roomId: joinRoomId });
   };
 
   return (
-    <Layout>
+    <Layout slot={<pre>{state.message}</pre>}>
       <div className="flex flex-col items-center gap-4 p-8">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-4">
@@ -51,6 +51,4 @@ const Lobby = ({ state, send }: UseSocket) => {
       </div>
     </Layout>
   );
-};
-
-export default Lobby;
+}

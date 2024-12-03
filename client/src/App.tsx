@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useSocket } from "./hooks/useSocket";
 import { Game } from "./components/Game";
-import Layout from "./Layout";
+import Lobby from "./components/Lobby";
+import Layout from "./components/Layout";
 
 export default function App() {
   const [username, setUsername] = useState("");
@@ -39,7 +40,7 @@ export default function App() {
         </div>
       </Layout>
     );
-  else if (!socket.game) {
-    return <Game {...{ socket }} />;
-  }
+  else if (!socket.game) return <Lobby {...socket} />;
+
+  return <Game {...socket} />;
 }
