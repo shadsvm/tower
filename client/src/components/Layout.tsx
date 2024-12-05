@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import "nes.css/css/nes.min.css";
+// script.js
 
 export default function Layout({
   children,
