@@ -18,8 +18,8 @@ import {
 const rooms = new Map<string, Room>();
 
 const server = Bun.serve<undefined>({
-  development: true,
-  port: 3000,
+  // development: true,
+  port: Number(process.env.PORT) || 3000,
   error(error) {
     return new Response(`<pre>${error}\n${error.stack}</pre>`, {
       headers: {
