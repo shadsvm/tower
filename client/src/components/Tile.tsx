@@ -1,14 +1,14 @@
-import { Tile } from "@shared/types";
+import { Tile as TileType } from "@server/types";
 import { ComponentProps } from "react";
 
-export const MapTile = ({
+export default function Tile({
   tile,
   username,
   ...rest
 }: {
-  tile: Tile;
+  tile: TileType;
   username: string;
-} & ComponentProps<"div">) => {
+} & ComponentProps<"div">) {
   const getColor = () => {
     if (!tile.owner) return "bg-gray-700";
     return tile.owner === username ? "bg-blue-500" : "bg-red-500";
@@ -36,4 +36,4 @@ export const MapTile = ({
       )}
     </div>
   );
-};
+}

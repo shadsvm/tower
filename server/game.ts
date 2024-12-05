@@ -1,5 +1,5 @@
 import type { ServerWebSocket } from "bun";
-import type { GamePlayer, GameState, Room, Tile } from "../shared/types";
+import type { GamePlayer, GameState, Room, Tile } from "./types";
 // Game state storage
 const gameStates = new Map<string, GameState>();
 

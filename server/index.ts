@@ -13,7 +13,7 @@ import {
   type ClientMessages,
   type GameState,
   type Room,
-} from "../shared/types";
+} from "./types";
 
 const rooms = new Map<string, Room>();
 
@@ -71,23 +71,11 @@ const server = Bun.serve<undefined>({
           case ClientMessage.JOIN_ROOM: {
             const room = rooms.get(msg.roomId);
             if (!room) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Room not found",
-                }),
-              );
-              return;
+              throw new Error("Room not found");
             }
 
             if (room.players.size >= 2) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Room is full",
-                }),
-              );
-              return;
+              throw new Error("Room is full");
             }
 
             // Second player joins
@@ -119,13 +107,7 @@ const server = Bun.serve<undefined>({
 
             // Validate it's actually their turn
             if (gameState.currentTurn !== msg.username) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Not your turn!",
-                }),
-              );
-              return;
+              throw new Error("Not your turn!");
             }
 
             // Calculate points for next turn
@@ -172,37 +154,19 @@ const server = Bun.serve<undefined>({
 
             // Validate turn
             if (gameState.currentTurn !== msg.username) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Not your turn!",
-                }),
-              );
-              return;
+              throw new Error("Not your turn!");
             }
 
             // Get player data
             const player = gameState.players[msg.username];
             if (player.actionTaken) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "You've already taken an action this turn!",
-                }),
-              );
-              return;
+              throw new Error("You've already taken an action this turn!");
             }
 
             // Check if they can afford it
             const cost = UnitCosts[msg.unitType as UnitType];
             if (player.points < cost) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Not enough points!",
-                }),
-              );
-              return;
+              throw new Error("Not enough points!");
             }
 
             // Validate placement position
@@ -216,38 +180,22 @@ const server = Bun.serve<undefined>({
               !(x === castle.x && y === castle.y);
 
             if (!isAdjacent) {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Must place units adjacent to your castle!",
-                }),
-              );
-              return;
+              throw new Error("Must place units adjacent to your castle!");
             }
 
             // Check if tile is available
             const targetTile = gameState.grid[y][x];
             if (targetTile.type === "castle" || targetTile.type === "tower") {
-              ws.send(
-                JSON.stringify({
-                  type: ServerMessage.ERROR,
-                  message: "Can't place units on buildings!",
-                }),
-              );
-              return;
+              throw new Error("Can't place units on buildings!");
             }
 
             // All validations passed, place the unit
-            const unitCount = msg.unitType === UnitType.HORSEMAN ? 5 : 10;
+            const unitCount = msg.unitType === UnitType.SOLDIER ? 5 : 10;
 
             gameState.grid[y][x] = {
               owner: msg.username,
               units: unitCount,
-              type:
-                msg.unitType === UnitType.SMALL_TOWER ||
-                msg.unitType === UnitType.LARGE_TOWER
-                  ? "tower"
-                  : "empty",
+              type: msg.unitType === UnitType.TOWER ? "tower" : "empty",
             };
 
             // Deduct points and mark action taken
@@ -269,12 +217,12 @@ const server = Bun.serve<undefined>({
             break;
           }
         }
-      } catch (e) {
-        console.error("Error handling message:", e);
+      } catch (err: any) {
+        console.error("Error:", err.message);
         ws.send(
           JSON.stringify({
             type: ServerMessage.ERROR,
-            message: "Invalid message format",
+            message: err.message,
           }),
         );
       }

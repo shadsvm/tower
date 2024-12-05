@@ -6,7 +6,7 @@ import {
   GameState,
   ClientMessage,
   UnitType,
-} from "@shared/types";
+} from "@server/types";
 
 interface SocketSend {
   type: ClientMessage;
@@ -55,7 +55,7 @@ export const useSocket = (username: string): UseSocket => {
           setState((prev) => ({
             ...prev,
             roomId: data.roomId,
-            message: `Room created! Share this ID: ${data.roomId}`,
+            message: `Room created!`,
           }));
           break;
         case ServerMessage.GAME_STATE:
@@ -68,7 +68,7 @@ export const useSocket = (username: string): UseSocket => {
           }));
           break;
         case ServerMessage.ERROR:
-          setState((prev) => ({ ...prev, message: `Error: ${data.message}` }));
+          setState((prev) => ({ ...prev, message: data.message }));
           break;
       }
     };
@@ -83,7 +83,6 @@ export const useSocket = (username: string): UseSocket => {
   const send = (props: SocketSend) => {
     if (!ws) return;
     // Ensure roomId is always set from state
-    console.log("socket.send:");
     const message = {
       ...props,
       username,

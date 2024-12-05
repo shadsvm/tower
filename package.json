@@ -1,9 +1,10 @@
 {
   "name": "tower",
-  "module": "index.ts",
+  "module": "server/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun run server/index.ts"
+    "start": "bun server/index.ts",
+    "dev": "bun --watch server/index.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.1.13"
@@ -12,8 +13,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "nanoid": "^5.0.8",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "nanoid": "^5.0.8"
   }
 }

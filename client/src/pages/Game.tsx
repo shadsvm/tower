@@ -1,9 +1,10 @@
-import { UseSocket } from "src/hooks/useSocket";
-import { MapTile } from "./MapTile";
-import { ActionPanel } from "./ActionPanel";
+import Actions from "@/components/Actions";
+import Alert from "@/components/Alert";
+import Layout from "@/components/Layout";
+import Tile from "@/components/Tile";
+import { UseSocket } from "@/hooks/useSocket";
+import { ClientMessage, Position, UnitType } from "@server/types";
 import { useState } from "react";
-import { UnitType, Position, ClientMessage } from "@shared/types";
-import Layout from "./Layout";
 
 export interface ActionResolve {
   type?: ClientMessage;
@@ -11,17 +12,15 @@ export interface ActionResolve {
   position?: Position;
 }
 
-export function Game(socket: UseSocket) {
+export default function Game({ socket }: { socket: UseSocket }) {
   const debug = false;
   const [selectedUnit, setSelectedUnit] = useState<UnitType | undefined>(
     undefined,
   );
   if (!socket.game) return;
-  const { game, username } = socket;
 
   const handleAction = (position: Position) => {
     if (!selectedUnit) return;
-    console.log("handleAction", selectedUnit, position);
     socket.send({
       type: ClientMessage.BUY_UNIT,
       unitType: selectedUnit,
@@ -33,8 +32,8 @@ export function Game(socket: UseSocket) {
   return (
     <Layout
       slot={
-        <ActionPanel
-          disabled={game.currentTurn !== username}
+        <Actions
+          disabled={socket.game.currentTurn !== socket.username}
           socket={socket}
           selectedUnit={selectedUnit}
           setSelectedUnit={setSelectedUnit}
@@ -58,11 +57,12 @@ export function Game(socket: UseSocket) {
       )}
       <div className="container mx-auto w-full flex justify-around my-8 items-center">
         <div className="text-xl">
-          {game.currentTurn === username
+          {socket.game.currentTurn === socket.username
             ? "Your turn!"
-            : `Waiting for ${game.currentTurn}`}
+            : `Waiting for ${socket.game.currentTurn}`}
         </div>
       </div>
+      <Alert text={socket.state.message} />
       <div
         className="flex flex-col items-center gap-4 z-0"
         onClick={() => {
@@ -70,26 +70,22 @@ export function Game(socket: UseSocket) {
         }}
       >
         <div className="z-0 grid grid-cols-12 perspective-distant transform-3d rotate-x-51 rotate-z-43 shadow-3xl  shadow-white transition-all duration-500 hover:-translate-y-4 hover:rotate-x-49 hover:rotate-z-38 gap-2">
-          {game.grid.map((row, y) =>
+          {socket.game.grid.map((row, y) =>
             row.map((tile, x) => (
-              <MapTile
+              <Tile
                 key={`${x}-${y}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction({ x, y });
                 }}
-                {...{ tile, username, selectedUnit, disabled: !selectedUnit }}
+                {...{
+                  tile,
+                  username: socket.username,
+                  disabled: !selectedUnit,
+                }}
               />
             )),
           )}
-        </div>
-        <div
-          className={
-            "px-4 py-2.5 border ring ring-gray-700 ring-offset-4 border-gray-300 bg-neutral-900/50 disabled:cursor-default transition"
-          }
-        >
-          <p className="title">Info</p>
-          <p>{socket.state.message}</p>
         </div>
       </div>
     </Layout>
