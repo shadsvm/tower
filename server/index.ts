@@ -20,6 +20,13 @@ const rooms = new Map<string, Room>();
 const server = Bun.serve<undefined>({
   development: true,
   port: 3000,
+  error(error) {
+    return new Response(`<pre>${error}\n${error.stack}</pre>`, {
+      headers: {
+        "Content-Type": "text/html",
+      },
+    });
+  },
   fetch(req) {
     const url = new URL(req.url);
 
@@ -28,12 +35,10 @@ const server = Bun.serve<undefined>({
       return undefined;
     }
 
-    switch (url.pathname) {
-      case "/api/health": {
-        return new Response("All good!");
-      }
-      default:
-        return new Response("Not found", { status: 404 });
+    if (url.pathname === "/") {
+      return new Response(Bun.file("./client/dist/index.html"));
+    } else {
+      return new Response(Bun.file("./client/dist" + url.pathname));
     }
   },
   // ... other config
