@@ -18,7 +18,7 @@ export default function Alert({
       <div
         role="alert"
         className={
-          "absolute bottom-0 inset-x-0 p-4 flex justify-center items-center border-gray-100 bg-white  p-4 dark:border-neutral-800 dark:bg-neutral-900"
+          "absolute bottom-0 inset-x-0 flex justify-center items-center border-gray-100 bg-white  p-4 dark:border-neutral-800 dark:bg-neutral-900"
         }
         {...rest}
       >

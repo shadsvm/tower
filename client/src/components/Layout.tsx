@@ -1,21 +1,25 @@
-import { ReactNode } from "react";
-import "nes.css/css/nes.min.css";
-// script.js
+import { ComponentProps, ReactNode } from "react";
 
 export default function Layout({
   children,
   slot,
+  ...rest
 }: {
   children: ReactNode;
   slot?: ReactNode;
-}) {
+} & ComponentProps<"div">) {
   return (
-    <main className="w-[100dvw] h-[100dvh] flex flex-col">
-      <div className="w-full container mx-auto flex  flex-row justify-around items-end">
-        <div className="  w-fit p-8 text-4xl">Tower 🏰</div>
-        <div className="">{slot}</div>
+    <main className="w-dvw h-dvh flex flex-col text-white">
+      <nav className="flex-none container mx-auto flex flex-row justify-around items-end">
+
+        <div id="layoutPortal" className="">
+          {slot}
+        </div>
+      </nav>
+
+      <div {...rest} className="flex-1 flex justify-center items-center">
+        {children}
       </div>
-      {children}
     </main>
   );
 }

@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
 import {
+  ClientMessage,
+  GameState,
   Position,
   ServerMessage,
   ServerMessages,
-  GameState,
-  ClientMessage,
   UnitType,
 } from "@server/types";
+import { useEffect, useState } from "react";
 
 interface SocketSend {
   type: ClientMessage;
@@ -30,17 +30,15 @@ type SocketState = {
 
 export const useSocket = (username: string): UseSocket => {
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [game, setGame] = useState<GameState | null>(null);
   const [state, setState] = useState<SocketState>({
     isConnected: false,
     message: "",
     roomId: null,
   });
-  const [game, setGame] = useState<GameState | null>(null);
 
-  useEffect(() => {
-    if (!username) return;
-
-    const socket = new WebSocket("ws://localhost:3000");
+  function connect() {
+    const socket = new WebSocket(`ws://${window.location.hostname}:3000`)
 
     socket.onopen = () => {
       setState((prev) => ({ ...prev, isConnected: true }));
@@ -72,25 +70,28 @@ export const useSocket = (username: string): UseSocket => {
           break;
       }
     };
-
     setWs(socket);
-
-    return () => {
-      socket.close();
-    };
-  }, [username]);
+    return socket;
+  }
 
   const send = (props: SocketSend) => {
-    if (!ws) return;
-    // Ensure roomId is always set from state
-    const message = {
-      ...props,
-      username,
-      roomId: state.roomId || props.roomId,
-    };
-    console.log("Sending:", message);
-    ws.send(JSON.stringify(message));
+    if (ws) {
+      const message = {
+        ...props,
+        username,
+        roomId: state.roomId || props.roomId,
+      };
+      ws.send(JSON.stringify(message));
+      // console.log("ws: Message sent", message);
+    } else console.error("ws: Connection lost");
   };
+
+  useEffect(() => {
+    if (!username) return;
+    const socket = connect();
+
+    return () => socket.close();
+  }, [username]);
 
   return {
     username,

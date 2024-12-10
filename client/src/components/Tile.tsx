@@ -10,13 +10,13 @@ export default function Tile({
   username: string;
 } & ComponentProps<"div">) {
   const getColor = () => {
-    if (!tile.owner) return "bg-gray-700";
+    if (!tile.owner) return "bg-neutral-800";
     return tile.owner === username ? "bg-blue-500" : "bg-red-500";
   };
 
   return (
     <div
-      className={`w-12 h-12 ${getColor()}  disabled:opacity-50 hover:bg-gray-500 shadow shadow-white relative`}
+      className={`size-13 ${getColor()} rounded disabled:opacity-50 shadow shadow-neutral-500 relative`}
       {...rest}
     >
       {tile.type === "castle" && (

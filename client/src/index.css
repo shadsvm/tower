@@ -3,9 +3,50 @@
 
 @theme {
   --color-primary: var(--color-blue-500);
+  --color-success: var(--color-green-500);
   --color-error: var(--color-red-500);
+  --color-warn: var(--color-orange-500);
+  --color-info: var(--color-cyan-500);
 }
 
-body {
-  @apply text-white bg-neutral-800;
+@layer base {
+
+  body {
+     @apply text-sm bg-zinc-50 text-black dark:bg-neutral-700 dark:text-white antialiased;
+     background-image: url('/noise.png');
+     background-size: 200px 200px;
+     background-position: 0 0;
+    -webkit-font-smoothing: antialiased;
+    font-family: "Press Start 2P";
+    cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABFklEQVRYR9WXURLDIAhE6/0PbSdOtUpcd1Gnpv1KGpTHBpCE1/cXq+vrMph7dGvXZTtpfW10DCA5jrH1H0Jhs5E0hnZdCR+vb5S8Nn8mQCeS9BdSalYJqMBjAGzq59xAESN7VFVUgV8AZB/dZBR7QTFDCqGquvUBVVoEtgIwpQRzmANSFHgWQKExHdIrPeuMvQNDarXe6nC/AutgV3JW+6bgqQLeV8FekRtgV+ToDKEKnACYKsfZjjkam7a0ZpYTytwmgainpC3HvwBocgKOxqRjehoR9DFKNFYtOwCGYCszobeCbl26N6yyQ6g8X/Wex/rBPsNEV6qAMaJPMynIHQCoSqS9JSMmwef51LflTgCRszU7DvAGiV6mHWfsaVUAAAAASUVORK5CYII=),
+      auto;
+  }
+
+  a,
+  button {
+    cursor:
+      url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAzElEQVRYR+2X0Q6AIAhF5f8/2jYXZkwEjNSVvVUjDpcrGgT7FUkI2D9xRfQETwNIiWO85wfINfQUEyxBG2ArsLwC0jioGt5zFcwF4OYDPi/mBYKm4t0U8ATgRm3ThFoAqkhNgWkA0jJLvaOVSs7j3qMnSgXWBMiWPXe94QqMBMBc1VZIvaTu5u5pQewq0EqNZvIEMCmxAawK0DNkay9QmfFNAJUXfgGgUkLaE7j/h8fnASkxHTz0DGIBMCnBeeM7AArpUd3mz2x3C7wADglA8BcWMZhZAAAAAElFTkSuQmCC)
+        14 0,
+      pointer;
+  }
+
+  input {
+    @apply py-2 px-5 bg-neutral-800 border border-neutral-600 rounded shadow decoration-0 outline-0
+  }
+}
+
+@layer components {
+  .card     { @apply flex flex-col gap-4 p-5 bg-neutral-800/50 backdrop-blur-md border border-neutral-600 shadow-md rounded}
+  .btn      { @apply py-2 px-5  not-disabled:hover:text-white focus:outline-none focus:ring not-disabled:focus:ring-neutral-400 font-medium transition duration-300 shadow-md rounded uppercase}
+
+  .btn-white             { @apply bg-white/20 border border-white text-white not-disabled:hover:bg-white not-disabled:hover:text-black }
+  .btn-warn             { @apply bg-warn/20 border border-warn text-warn not-disabled:hover:bg-warn/90 }
+  .btn-error            { @apply bg-error/20 border border-error text-error not-disabled:hover:bg-error/90 }
+  .btn-success          { @apply bg-success/20 border border-success text-success not-disabled:hover:bg-success/90 }
+
+  .btn-outline          { @apply bg-transparent border not-disabled:hover:bg-white not-disabled:hover:text-black }
+  .btn-outline-warn     { @apply bg-transparent text-warn border border-warn not-disabled:hover:bg-warn not-disabled:hover:text-black }
+  .btn-outline-error    { @apply bg-transparent text-error border border-error not-disabled:hover:bg-error not-disabled:hover:text-black }
+  .btn-outline-success  { @apply bg-transparent text-success border border-success not-disabled:hover:bg-success not-disabled:hover:text-black }
+
 }
