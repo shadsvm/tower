@@ -35,7 +35,7 @@ export default function Game({ socket }: { socket: UseSocket }) {
         setSelectedUnit={setSelectedUnit}
       />
       <div
-        className="flex flex-col items-center gap-4 z-0"
+        className="flex flex-col items-center gap-4 z-10"
         onClick={() => {
           setSelectedUnit(undefined);
         }}

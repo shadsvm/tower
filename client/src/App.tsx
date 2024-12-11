@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
-import Start from "@/pages/Start";
 import Game from "@/pages/Game";
 import Lobby from "@/pages/Lobby";
+import Start from "@/pages/Start";
+import { useState } from "react";
 import Layout from "./components/Layout";
+import Toast from "./components/Toast";
 
 export default function App() {
   const [username, setUsername] = useState("");
@@ -12,6 +13,7 @@ export default function App() {
   if (!socket.state.isConnected) {
     return (
       <Layout>
+        <Toast {...{socket}} />
         <Start {...{ setUsername }} />
       </Layout>
     );
@@ -19,6 +21,8 @@ export default function App() {
 
   return (
     <Layout>
+      <Toast {...{socket}} />
+
       {!socket.game ? <Lobby {...{ socket }} /> : <Game {...{ socket }} />}
     </Layout>
   );

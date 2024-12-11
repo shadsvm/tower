@@ -1,10 +1,10 @@
 import {
-  ClientMessage,
-  GameState,
-  Position,
-  ServerMessage,
-  ServerMessages,
-  UnitType,
+    ClientMessage,
+    GameState,
+    Position,
+    ServerMessage,
+    ServerMessages,
+    UnitType,
 } from "@server/types";
 import { useEffect, useState } from "react";
 
@@ -39,15 +39,25 @@ export const useSocket = (username: string): UseSocket => {
 
   function connect() {
     const socket = new WebSocket(`ws://${window.location.hostname}:3000`)
+    console.group('useSocket')
 
     socket.onopen = () => {
       setState((prev) => ({ ...prev, isConnected: true }));
+      if (import.meta.env.DEV) {
+        console.info('connection established')
+      }
     };
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data) as ServerMessages;
-      console.log("Received:", data);
-
+      if (import.meta.env.DEV) {
+        if (data.type === ServerMessage.ERROR) {
+          console.warn(data.type, data.message)
+        }
+        else {
+          console.debug(data.type, data)
+        }
+      }
       switch (data.type) {
         case ServerMessage.ROOM_CREATED:
           setState((prev) => ({
@@ -70,6 +80,7 @@ export const useSocket = (username: string): UseSocket => {
           break;
       }
     };
+    console.groupEnd()
     setWs(socket);
     return socket;
   }
