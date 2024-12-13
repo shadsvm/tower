@@ -1,14 +1,14 @@
-import { UseSocket } from "@/hooks/useSocket";
+import { useSocketStore } from "@/store/socket";
 import { useEffect, useRef } from "react";
 
-export default function Toast({ socket }: { socket: UseSocket; }) {
-
+export default function Toast() {
+  const messages = useSocketStore(({state}) => state.messages);
   const toastRef = useRef<HTMLDivElement | null>(null);
   console.group('Toast')
 
   useEffect(() => {
     if (!toastRef.current) return;
-    toastRef.current.innerText = socket.state.message;
+    toastRef.current.innerText = messages[messages.length];
     toastRef.current?.classList.replace('opacity-0', 'opacity-100' )
     console.debug(toastRef.current.innerText)
 
@@ -21,7 +21,7 @@ export default function Toast({ socket }: { socket: UseSocket; }) {
     return () => {
       clearTimeout(timer);
     };
-  }, [socket.state.message]);
+  }, [messages]);
 
   console.groupEnd()
 

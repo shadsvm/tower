@@ -10,7 +10,6 @@
 }
 
 @layer base {
-
   body {
      @apply text-sm bg-zinc-50 text-black dark:bg-neutral-700 dark:text-white antialiased;
      background-image: url('/noise.png');
@@ -31,15 +30,21 @@
   }
 
   input {
-    @apply py-2 px-5 bg-neutral-800 border border-neutral-600 rounded shadow decoration-0 outline-0
+    @apply  py-2 px-5 bg-neutral-800 border-neutral-600
+            border rounded shadow decoration-0 outline-0;
   }
 }
 
 @layer components {
-  .card     { @apply flex flex-col gap-4 p-5 bg-neutral-800/50 backdrop-blur-md border border-neutral-600 shadow-md rounded}
-  .btn      { @apply py-2 px-5  not-disabled:hover:text-white focus:outline-none focus:ring not-disabled:focus:ring-neutral-400 font-medium transition duration-300 shadow-md rounded uppercase}
+  .card     {
+    @apply  flex flex-col gap-4 p-5 bg-neutral-800/50 backdrop-blur-md border border-neutral-600 shadow-md rounded
+  }
+  .btn      {
+    @apply  py-2 px-5 font-medium transition duration-300 shadow-md rounded uppercase
+            not-disabled:hover:text-white focus:outline-none focus:ring not-disabled:focus:ring-neutral-400
+  }
 
-  .btn-white             { @apply bg-white/20 border border-white text-white not-disabled:hover:bg-white not-disabled:hover:text-black }
+  .btn-white            { @apply bg-white/20 border border-white text-white not-disabled:hover:bg-white not-disabled:hover:text-black }
   .btn-warn             { @apply bg-warn/20 border border-warn text-warn not-disabled:hover:bg-warn/90 }
   .btn-error            { @apply bg-error/20 border border-error text-error not-disabled:hover:bg-error/90 }
   .btn-success          { @apply bg-success/20 border border-success text-success not-disabled:hover:bg-success/90 }
@@ -48,5 +53,4 @@
   .btn-outline-warn     { @apply bg-transparent text-warn border border-warn not-disabled:hover:bg-warn not-disabled:hover:text-black }
   .btn-outline-error    { @apply bg-transparent text-error border border-error not-disabled:hover:bg-error not-disabled:hover:text-black }
   .btn-outline-success  { @apply bg-transparent text-success border border-success not-disabled:hover:bg-success not-disabled:hover:text-black }
-
 }

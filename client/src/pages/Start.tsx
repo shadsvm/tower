@@ -1,11 +1,9 @@
-import { Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react";
+import { useUserStore } from "@/store/user";
+import { FormEvent, useEffect, useState } from "react";
 
-export default function Start({
-  setUsername,
-}: {
-  setUsername: Dispatch<SetStateAction<string>>;
-}) {
-  const [input, setInput] = useState('');
+export default function Start() {
+  const userStore = useUserStore((store) => store);
+  const [input, setInput] = useState(userStore.username ?? '');
 
   const [serverStatus, setServerStatus] = useState(false);
 
@@ -33,7 +31,7 @@ export default function Start({
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (validateUsername()) {
-      setUsername(input);
+      userStore.setUsername(input);
     }
   };
 

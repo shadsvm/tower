@@ -1,26 +1,30 @@
+import { useGameStore } from "@/store/game";
+import { useSocketStore } from "@/store/socket";
+import { useUserStore } from "@/store/user";
 import { ClientMessage, UnitCosts, UnitType } from "@server/types";
 import { Dispatch, ReactNode, SetStateAction } from "react";
-import { UseSocket } from "src/hooks/useSocket";
 
 export default function ActionPanel({
-  socket,
   selectedUnit,
   setSelectedUnit,
   disabled,
 }: {
-  socket: UseSocket;
   selectedUnit: UnitType | undefined;
   setSelectedUnit: Dispatch<SetStateAction<UnitType | undefined>>;
   disabled: boolean;
 }): ReactNode {
+  const game = useGameStore(({game}) => game);
+  const send = useSocketStore(({send}) => send);
+  const username = useUserStore(({username}) => username);
+
   return (
     <section className="group card flex flex-col gap-6">
       <div className="flex justify-between items-center text-xl">
-        {socket?.game?.currentTurn === socket.username
+        {disabled
           ? "Your turn!"
-          : `Waiting for ${socket?.game?.currentTurn}`}
+          : `Waiting for ${game?.currentTurn}`}
         <div className="flex justify-center items-center gap-2 mr-8">
-          {socket.game?.players[socket.username].points}
+          {game?.players[username].points}
           💰
         </div>
       </div>
@@ -29,7 +33,7 @@ export default function ActionPanel({
         <button
           onClick={() => {
             console.log("action panel end turn");
-            socket.send({ type: ClientMessage.END_TURN });
+            send({ type: ClientMessage.END_TURN });
           }}
           disabled={disabled}
           className={
@@ -45,7 +49,7 @@ export default function ActionPanel({
           key={index}
           aria-selected={selectedUnit == (unit as UnitType)}
           disabled={
-            disabled || socket.game!.players[socket.username].points < cost
+            disabled || game!.players[username].points < cost
           }
           className={
             "btn btn-white aria-selected:bg-green-600  transition"

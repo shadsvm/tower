@@ -10,11 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-router/fs-routes": "^7.0.2",
     "@tailwindcss/vite": "^4.0.0-beta.4",
     "nes.css": "^2.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwindcss": "^4.0.0-beta.4"
+    "tailwindcss": "^4.0.0-beta.4",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

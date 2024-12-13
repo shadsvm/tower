@@ -1,6 +1,8 @@
 import Actions from "@/components/Actions";
 import Tile from "@/components/Tile";
-import { UseSocket } from "@/hooks/useSocket";
+import { useGameStore } from "@/store/game";
+import { useSocketStore } from "@/store/socket";
+import { useUserStore } from "@/store/user";
 import { ClientMessage, Position, UnitType } from "@server/types";
 import { useState } from "react";
 
@@ -10,27 +12,20 @@ export interface ActionResolve {
   position?: Position;
 }
 
-export default function Game({ socket }: { socket: UseSocket }) {
+export default function Game() {
+  const game = useGameStore(({game}) => game);
+  const send = useSocketStore(({send}) => send);
+  const username = useUserStore(({username}) => username);
   const [selectedUnit, setSelectedUnit] = useState<UnitType | undefined>(
     undefined,
   );
-  if (!socket.game) return;
 
-  const handleAction = (position: Position) => {
-    if (!selectedUnit) return;
-    socket.send({
-      type: ClientMessage.BUY_UNIT,
-      unitType: selectedUnit,
-      position,
-    });
-    setSelectedUnit(undefined);
-  };
+  if (game === undefined) return (<div>Something went wrong</div>);
 
   return (
     <div className="space-y-5">
       <Actions
-        disabled={socket.game.currentTurn !== socket.username}
-        socket={socket}
+        disabled={game.currentTurn !== username}
         selectedUnit={selectedUnit}
         setSelectedUnit={setSelectedUnit}
       />
@@ -41,17 +36,22 @@ export default function Game({ socket }: { socket: UseSocket }) {
         }}
       >
         <div className="grid grid-cols-12 shadow-white transition-all duration-500  gap-1">
-          {socket.game.grid.map((row, y) =>
+          {game.grid.map((row, y) =>
             row.map((tile, x) => (
               <Tile
                 key={`${x}-${y}`}
                 onClick={(e) => {
+                  if (!selectedUnit) return;
                   e.stopPropagation();
-                  handleAction({ x, y });
+                  send({
+                    type: ClientMessage.BUY_UNIT,
+                    unitType: selectedUnit,
+                    position: { x, y },
+                  });
                 }}
                 {...{
                   tile,
-                  username: socket.username,
+                  username: username,
                   disabled: !selectedUnit,
                 }}
               />
