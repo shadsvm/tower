@@ -13,19 +13,19 @@ export interface ActionResolve {
 }
 
 export default function Game() {
-  const game = useGameStore(({game}) => game);
+  const {state} = useGameStore();
   const send = useSocketStore(({send}) => send);
   const username = useUserStore(({username}) => username);
   const [selectedUnit, setSelectedUnit] = useState<UnitType | undefined>(
     undefined,
   );
 
-  if (game === undefined) return (<div>Something went wrong</div>);
+  if (state === undefined) return (<div>Something went wrong</div>);
 
   return (
     <div className="space-y-5">
       <Actions
-        disabled={game.currentTurn !== username}
+        disabled={state.currentTurn !== username}
         selectedUnit={selectedUnit}
         setSelectedUnit={setSelectedUnit}
       />
@@ -36,7 +36,7 @@ export default function Game() {
         }}
       >
         <div className="grid grid-cols-12 shadow-white transition-all duration-500  gap-1">
-          {game.grid.map((row, y) =>
+          {state.grid.map((row, y) =>
             row.map((tile, x) => (
               <Tile
                 key={`${x}-${y}`}

@@ -1,27 +1,13 @@
+import { useServerStatus } from "@/hooks/useServerStatus";
+import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
 export default function Start() {
-  const userStore = useUserStore((store) => store);
-  const [input, setInput] = useState(userStore.username ?? '');
-
-  const [serverStatus, setServerStatus] = useState(false);
-
-
-  useEffect(() => {
-    console.log(`${window.location.hostname}:3000`)
-  const getServerStatus = async () => {
-    try {
-      const data = await fetch(`/api/status`)
-      const status = await data.text()
-      setServerStatus(!!status)
-    } catch {
-      setServerStatus(false)
-    }
-  }
-
-  getServerStatus()
-  }, [])
+  const {connect} = useSocketStore()
+  const {username, setUsername} = useUserStore();
+  const [input, setInput] = useState(username ?? '');
+  const serverStatus = useServerStatus()
 
   const validateUsername = () => {
     const trimmed = input.trim();
@@ -31,7 +17,8 @@ export default function Start() {
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (validateUsername()) {
-      userStore.setUsername(input);
+      setUsername(input);
+      connect(username)
     }
   };
 
@@ -61,7 +48,7 @@ export default function Start() {
         />
         <button
           type="submit"
-          // disabled={!serverStatus || !validateUsername()}
+          disabled={!serverStatus || !validateUsername()}
           className={`btn btn-success disabled:btn-outline-error `}
         >
           Connect

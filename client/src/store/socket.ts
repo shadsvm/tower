@@ -35,7 +35,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   connect: () => {
     const socket = new WebSocket('ws://localhost:3000');
-    const setGame = useGameStore.getState().setGame;
+    const setGame = useGameStore.getState().setState;
 
     socket.onopen = () => {
       set(state => ({
@@ -43,8 +43,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         state: { ...state.state, isConnected: true }
       }));
       if (import.meta.env.DEV) {
-        console.group('useSocket')
-        console.info('connection established')
+        console.info('socket: connection established')
       }
     };
 
@@ -87,7 +86,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
           break;
       }
     };
-    console.groupEnd()
     socket.onclose = () => {
       set(state => ({
         state: { ...state.state, isConnected: false }

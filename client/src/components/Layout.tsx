@@ -1,4 +1,5 @@
 import { ComponentProps, ReactNode } from "react";
+import Toast from "./Toast";
 
 export default function Layout({
   children,
@@ -20,6 +21,7 @@ export default function Layout({
       <div {...rest} className="flex-1 flex justify-center items-center">
         {children}
       </div>
+      <Toast />
     </main>
   );
 }

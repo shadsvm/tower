@@ -13,9 +13,9 @@ export default function ActionPanel({
   setSelectedUnit: Dispatch<SetStateAction<UnitType | undefined>>;
   disabled: boolean;
 }): ReactNode {
-  const game = useGameStore(({game}) => game);
-  const send = useSocketStore(({send}) => send);
-  const username = useUserStore(({username}) => username);
+  const game = useGameStore(({state}) => state);
+  const {send} = useSocketStore();
+  const {username} = useUserStore();
 
   return (
     <section className="group card flex flex-col gap-6">
