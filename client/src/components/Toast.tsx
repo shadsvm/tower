@@ -7,14 +7,11 @@ export default function Toast() {
 
   useEffect(() => {
     if (!messages.length || !toastRef.current) return;
-    toastRef.current.innerText = messages[messages.length];
     toastRef.current?.classList.replace('opacity-0', 'opacity-100' )
 
     const timer = setTimeout(() => {
       toastRef.current?.classList.replace('opacity-100', 'opacity-0')
-      console.debug('toggleAttribute: hidden')
-
-    }, 3000); // delay
+    }, 3000);
 
     return () => {
       clearTimeout(timer);
@@ -23,6 +20,7 @@ export default function Toast() {
 
   return (
     <div ref={toastRef} className="absolute right-3 bottom-3 opacity-0 transition z-50! btn btn-white">
+      {messages[messages.length - 1]}
     </div>
   );
 

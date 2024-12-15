@@ -43,7 +43,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         state: { ...state.state, isConnected: true }
       }));
       if (import.meta.env.DEV) {
-        console.info('socket: connection established')
+        console.info('socket: connected')
       }
     };
 
@@ -101,15 +101,14 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   send: (data: SocketSend) => {
     const { ws } = get();
-    console.debug('socket: send')
-    const username = useUserStore.getState().username;
     if (!ws) return;
-
-    const message = {
+    const username = useUserStore.getState().username;
+    const payload = {
       username,
       ...data
     };
 
-    ws.send(JSON.stringify(message));
+    console.log('socket.send()', data)
+    ws.send(JSON.stringify(payload));
   },
 }));

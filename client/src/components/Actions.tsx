@@ -2,29 +2,29 @@ import { useGameStore } from "@/store/game";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
 import { ClientMessage, UnitCosts, UnitType } from "@server/types";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction, useMemo } from "react";
 
 export default function ActionPanel({
   selectedUnit,
   setSelectedUnit,
-  disabled,
 }: {
   selectedUnit: UnitType | undefined;
   setSelectedUnit: Dispatch<SetStateAction<UnitType | undefined>>;
-  disabled: boolean;
 }): ReactNode {
   const game = useGameStore(({state}) => state);
   const {send} = useSocketStore();
   const {username} = useUserStore();
+  const disabled = useMemo(() => game?.currentTurn !== username, [username,game?.currentTurn])
 
-  return (
+  if (game != undefined) return (
     <section className="group card flex flex-col gap-6">
       <div className="flex justify-between items-center text-xl">
-        {disabled
+        {/* {disabled
           ? "Your turn!"
-          : `Waiting for ${game?.currentTurn}`}
+          : `Waiting for ${game.currentTurn}`} */}
+        <pre>{JSON.stringify({currentTurn: game.currentTurn, username, disabled}, null, 2)}</pre>
         <div className="flex justify-center items-center gap-2 mr-8">
-          {game?.players[username].points}
+          {game.players[username].points}
           💰
         </div>
       </div>
@@ -32,7 +32,6 @@ export default function ActionPanel({
       <div className="flex justify-between items-center gap-5">
         <button
           onClick={() => {
-            console.log("action panel end turn");
             send({ type: ClientMessage.END_TURN });
           }}
           disabled={disabled}
@@ -49,7 +48,7 @@ export default function ActionPanel({
           key={index}
           aria-selected={selectedUnit == (unit as UnitType)}
           disabled={
-            disabled || game!.players[username].points < cost
+            disabled || game.players[username].points < cost
           }
           className={
             "btn btn-white aria-selected:bg-green-600  transition"
@@ -63,7 +62,6 @@ export default function ActionPanel({
           <div className="flex justify-evenly items-center">
             <p>{unit}</p>
             <p>{cost}$</p>
-
           </div>
         </button>
       ))}

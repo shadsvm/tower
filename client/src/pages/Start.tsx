@@ -1,22 +1,24 @@
 import { useServerStatus } from "@/hooks/useServerStatus";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+
+const validateUsername = (text:string) => {
+  const trimmed = text.trim();
+  return trimmed.length >= 3 && trimmed.length <= 9;
+};
 
 export default function Start() {
   const {connect} = useSocketStore()
   const {username, setUsername} = useUserStore();
-  const [input, setInput] = useState(username ?? '');
   const serverStatus = useServerStatus()
+  const [input, setInput] = useState(username ?? '');
+  const isInputValid = useMemo(() => validateUsername(input), [input])
 
-  const validateUsername = () => {
-    const trimmed = input.trim();
-    return trimmed.length >= 3 && trimmed.length <= 9;
-  };
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (validateUsername()) {
+    if (isInputValid) {
       setUsername(input);
       connect(username)
     }
@@ -45,11 +47,11 @@ export default function Start() {
           maxLength={9}
           placeholder="Username"
           className={``}
+          required
         />
         <button
           type="submit"
-          disabled={!serverStatus || !validateUsername()}
-          className={`btn btn-success disabled:btn-outline-error `}
+          className={`btn ${isInputValid && serverStatus ? 'btn-success' : 'btn-error'}`}
         >
           Connect
         </button>

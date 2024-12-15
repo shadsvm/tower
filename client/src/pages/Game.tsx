@@ -14,8 +14,8 @@ export interface ActionResolve {
 
 export default function Game() {
   const {state} = useGameStore();
-  const send = useSocketStore(({send}) => send);
-  const username = useUserStore(({username}) => username);
+  const {send} = useSocketStore();
+  const {username} = useUserStore();
   const [selectedUnit, setSelectedUnit] = useState<UnitType | undefined>(
     undefined,
   );
@@ -25,7 +25,6 @@ export default function Game() {
   return (
     <div className="space-y-5">
       <Actions
-        disabled={state.currentTurn !== username}
         selectedUnit={selectedUnit}
         setSelectedUnit={setSelectedUnit}
       />
