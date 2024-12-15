@@ -1,5 +1,5 @@
-import type { ServerWebSocket } from "bun";
-import type { GamePlayer, GameState, Room, Tile } from "./types";
+import { CASTLE_UNITS, GRID_SIZE, INITIAL_POINTS } from "./constant";
+import type { GamePlayer, GameState, Position, Room, Tile } from "./types";
 // Game state storage
 const gameStates = new Map<string, GameState>();
 
@@ -10,22 +10,6 @@ export function setGameState(roomId: string, state: GameState) {
 export function getGameState(roomId: string): GameState | undefined {
   return gameStates.get(roomId);
 }
-export type Position = {
-  x: number;
-  y: number;
-};
-
-export type Player = {
-  username: string;
-  points: number;
-  castle: Position;
-  actionTaken: boolean;
-  ws: ServerWebSocket;
-};
-
-const GRID_SIZE = 8;
-const INITIAL_POINTS = 50;
-const CASTLE_UNITS = 100;
 
 export function initializeGame(room: Room): GameState {
   const [player1Entry, player2Entry] = Array.from(room.players.entries());

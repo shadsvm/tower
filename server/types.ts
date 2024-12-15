@@ -4,6 +4,15 @@ export type Position = {
   y: number;
 };
 
+export type Player = {
+  username: string;
+  points: number;
+  castle: Position;
+  actionTaken: boolean;
+  ws: ServerWebSocket;
+};
+
+
 export type Tile = {
   owner: string | null;
   units: number;
@@ -25,15 +34,14 @@ export type GameState = {
   turnNumber: number;
 };
 
-// ... rest of your types
-export type Player = {
+export type RoomPlayer = {
   username: string;
   ws: ServerWebSocket;
 };
 
 export type Room = {
   id: string;
-  players: Map<string, Player>;
+  players: Map<string, RoomPlayer>;  // Changed from Player to RoomPlayer
   state: "waiting" | "playing";
 };
 

@@ -1,19 +1,20 @@
 import { nanoid } from "nanoid";
 import {
-  calculatePoints,
-  getGameState,
-  initializeGame,
-  setGameState,
+    calculatePoints,
+    getGameState,
+    initializeGame,
+    setGameState,
 } from "./game";
 import {
-  ClientMessage,
-  ServerMessage,
-  UnitCosts,
-  UnitType,
-  type ClientMessages,
-  type GameState,
-  type Room,
+    ClientMessage,
+    ServerMessage,
+    UnitCosts,
+    UnitType,
+    type ClientMessages,
+    type GameState,
+    type Room,
 } from "./types";
+import { canPlaceOnTile } from "./utils";
 
 const rooms = new Map<string, Room>();
 
@@ -50,29 +51,23 @@ const server = Bun.serve<undefined>({
 
         switch (msg.type) {
           case ClientMessage.CREATE_ROOM: {
-            console.log("Creating room..."); // Debug log
-
             const roomId = nanoid(6);
             const room: Room = {
               id: roomId,
               players: new Map([
-                [msg.username, { username: msg.username, ws }],
+                [msg.username, { username: msg.username, ws }]  // Now matches RoomPlayer type
               ]),
               state: "waiting",
             };
 
             rooms.set(roomId, room);
-            ws.subscribe(roomId); // Host subscribes to room
-
-            const response = {
+            ws.subscribe(roomId);
+            ws.send(JSON.stringify({
               type: ServerMessage.ROOM_CREATED,
               roomId,
-            };
-            console.log("Sending response:", response); // Debug log
-            ws.send(JSON.stringify(response));
+            }));
             break;
           }
-
           case ClientMessage.JOIN_ROOM: {
             const room = rooms.get(msg.roomId);
             if (!room) {
@@ -84,7 +79,7 @@ const server = Bun.serve<undefined>({
             }
 
             // Second player joins
-            room.players.set(msg.username, { username: msg.username, ws });
+            room.players.set(msg.username, { username: msg.username, ws });  // Now matches RoomPlayer type
             ws.subscribe(msg.roomId);
 
             // Initialize and start game immediately
@@ -149,7 +144,6 @@ const server = Bun.serve<undefined>({
             );
             break;
           }
-          // In the message switch
           case ClientMessage.BUY_UNIT: {
             const room = rooms.get(msg.roomId);
             if (!room) return;
@@ -169,38 +163,28 @@ const server = Bun.serve<undefined>({
             }
 
             // Check if they can afford it
-            const cost = UnitCosts[msg.unitType as UnitType];
+            const cost = UnitCosts[msg.unitType];
             if (player.points < cost) {
               throw new Error("Not enough points!");
             }
 
             // Validate placement position
+            if (!canPlaceOnTile(gameState.grid, msg.position, msg.username)) {
+              throw new Error("Invalid placement position!");
+            }
+
             const { x, y } = msg.position;
-            const castle = player.castle;
-
-            // Must be adjacent to castle
-            const isAdjacent =
-              Math.abs(x - castle.x) <= 1 &&
-              Math.abs(y - castle.y) <= 1 &&
-              !(x === castle.x && y === castle.y);
-
-            if (!isAdjacent) {
-              throw new Error("Must place units adjacent to your castle!");
-            }
-
-            // Check if tile is available
             const targetTile = gameState.grid[y][x];
-            if (targetTile.type === "castle" || targetTile.type === "tower") {
-              throw new Error("Can't place units on buildings!");
-            }
-
-            // All validations passed, place the unit
             const unitCount = msg.unitType === UnitType.SOLDIER ? 5 : 10;
 
+            // Place units
             gameState.grid[y][x] = {
               owner: msg.username,
-              units: unitCount,
-              type: msg.unitType === UnitType.TOWER ? "tower" : "empty",
+              // Add to existing units if we own the tile
+              units: targetTile.owner === msg.username
+                ? targetTile.units + unitCount
+                : unitCount,
+              type: msg.unitType === UnitType.TOWER ? "tower" : "empty"
             };
 
             // Deduct points and mark action taken
@@ -215,8 +199,8 @@ const server = Bun.serve<undefined>({
               msg.roomId,
               JSON.stringify({
                 type: ServerMessage.GAME_STATE,
-                state: gameState,
-              }),
+                state: gameState
+              })
             );
 
             break;
