@@ -47,6 +47,7 @@ export default function Game() {
                     unitType: selectedUnit,
                     position: { x, y },
                   });
+                  setSelectedUnit(undefined)
                 }}
                 {...{
                   tile,

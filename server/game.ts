@@ -23,7 +23,7 @@ export type Player = {
   ws: ServerWebSocket;
 };
 
-const GRID_SIZE = 12;
+const GRID_SIZE = 8;
 const INITIAL_POINTS = 50;
 const CASTLE_UNITS = 100;
 

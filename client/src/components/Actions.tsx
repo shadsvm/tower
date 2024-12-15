@@ -19,54 +19,56 @@ export default function ActionPanel({
   if (game != undefined) return (
     <section className="group card flex flex-col gap-6">
       <div className="flex justify-between items-center text-xl">
-        {/* {disabled
-          ? "Your turn!"
-          : `Waiting for ${game.currentTurn}`} */}
-        <pre>{JSON.stringify({currentTurn: game.currentTurn, username, disabled}, null, 2)}</pre>
+        <div className={disabled ? 'text-error' : 'text-primary'}>
+          {disabled
+            ? `Waiting for ${game.currentTurn}`
+            : "Your turn!"}
+        </div>
         <div className="flex justify-center items-center gap-2 mr-8">
           {game.players[username].points}
           💰
         </div>
       </div>
 
-      <div className="flex justify-between items-center gap-5">
-        <button
-          onClick={() => {
-            send({ type: ClientMessage.END_TURN });
-          }}
-          disabled={disabled}
-          className={
-            "btn btn-white"
-          }
-        >
-          🤚 End Turn
-        </button>
-        <div className="flex justify-between items-center gap-5">
+        {!disabled &&
+      <div className="flex justify-start items-center gap-5">
+          <button
+            onClick={() => {
+              send({ type: ClientMessage.END_TURN });
+            }}
+            disabled={disabled}
+            className={
+              "btn btn-white"
+            }
+          >
+            🤚 End Turn
+          </button>
 
-      {Object.entries(UnitCosts).map(([unit, cost], index) => (
-        <button
-          key={index}
-          aria-selected={selectedUnit == (unit as UnitType)}
-          disabled={
-            disabled || game.players[username].points < cost
-          }
-          className={
-            "btn btn-white aria-selected:bg-green-600  transition"
-          }
-          onClick={() => {
-            if (disabled) return;
-            if (selectedUnit) setSelectedUnit(undefined);
-            else setSelectedUnit(unit as UnitType);
-          }}
-        >
-          <div className="flex justify-evenly items-center">
-            <p>{unit}</p>
-            <p>{cost}$</p>
-          </div>
-        </button>
-      ))}
+
+        {Object.entries(UnitCosts).map(([unit, cost], index) => (
+          <button
+            key={index}
+            aria-selected={selectedUnit == (unit as UnitType)}
+            disabled={
+              disabled || game.players[username].points < cost
+            }
+            className={
+              "btn btn-white aria-selected:bg-green-600  transition"
+            }
+            onClick={() => {
+              if (disabled) return;
+              if (selectedUnit) setSelectedUnit(undefined);
+              else setSelectedUnit(unit as UnitType);
+            }}
+          >
+            <div className="flex justify-evenly items-center">
+              <p>{unit}</p>
+              <p>{cost}$</p>
+            </div>
+          </button>
+        ))}
       </div>
-      </div>
+        }
     </section>
   );
 }

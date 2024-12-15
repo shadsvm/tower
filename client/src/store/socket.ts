@@ -71,7 +71,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             state: {
               ...store.state,
               roomId: store.state.roomId || data.state.roomId,
-              messages: [...store.state.messages, "Game starting!"]
+              messages: [...store.state.messages, "Update!"]
             }
           }));
           break;
@@ -100,15 +100,16 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   send: (data: SocketSend) => {
-    const { ws } = get();
+    const { ws, state } = get();
     if (!ws) return;
     const username = useUserStore.getState().username;
     const payload = {
       username,
+      roomId: state.roomId,  // Add roomId from state
       ...data
     };
 
-    console.log('socket.send()', data)
+    console.log('socket.send()', payload) // Better debugging
     ws.send(JSON.stringify(payload));
   },
 }));
