@@ -16,7 +16,7 @@ export default function Tile({
 
   return (
     <div
-      className={`size-13 ${getColor()} rounded disabled:opacity-50 shadow shadow-neutral-500 relative`}
+      className={`size-13 ${getColor()} rounded hover:bg-neutral-900 transition drop-shadow-md relative`}
       {...rest}
     >
       {tile.type === "castle" && (

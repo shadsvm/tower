@@ -29,12 +29,12 @@ export default function Game() {
         setSelectedUnit={setSelectedUnit}
       />
       <div
-        className="flex flex-col items-center gap-4 z-10"
+        className="flex flex-col items-center gap-4 z-10 "
         onClick={() => {
           setSelectedUnit(undefined);
         }}
       >
-        <div className="grid grid-cols-12 shadow-white transition-all duration-500  gap-1">
+        <div className="grid grid-cols-6  transition-all duration-500 gap-1">
           {state.grid.map((row, y) =>
             row.map((tile, x) => (
               <Tile
