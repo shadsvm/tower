@@ -1,6 +1,12 @@
 import { Tile as TileType } from "@server/types";
 import { ComponentProps } from "react";
 
+const buyUnitsIcons = {
+  'soldier': '🥷',
+  'castle': '🏰',
+  'tower': '🗼',
+}
+
 export default function Tile({
   tile,
   username,
@@ -19,9 +25,11 @@ export default function Tile({
       className={`size-13 ${getColor()} rounded hover:bg-neutral-900 transition drop-shadow-md relative`}
       {...rest}
     >
+        {tile?.type &&
         <span className="absolute inset-0 flex items-center justify-center">
-          {tile?.type}
+          {buyUnitsIcons[tile?.type]}
         </span>
+        }
       {(tile?.size ?? 0) > 0 && (
         <span className="absolute bottom-0 right-0 text-xs p-1">
           {tile.size}

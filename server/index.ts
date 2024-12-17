@@ -172,25 +172,16 @@ const server = Bun.serve<undefined>({
             if (target.owner === msg.username || target.owner === null) {
 
               if (msg.unitType === 'soldier') {
-                  gameState.grid[y][x] = {
-                      owner: msg.username,
-                      size: (target?.size ?? 0) + 1,
-                      type: target.type
-                    };
-                // const adjacent = getAdjacentTiles(gameState.grid, msg.position)
-                // console.log('adjacent',adjacent)
-                // const isAdjacent = adjacent.find((_) => _.tile.owner === msg.username)
-                // console.log('isAdjacent',adjacent)
-                // if (adjacent.length) {
-                // }
-                //   else {
-                //   throw new Error("Can only place units on owned or adjacent tiles!");
-                // }
+                const adjacent = getAdjacentTiles(gameState.grid, msg.position)
+                const isAdjacent = adjacent.find((_) => _.tile.owner === msg.username)
+                if (!isAdjacent) {
+                  throw new Error("Can only place units on owned or adjacent tiles!");
+                }
               }
               if (msg.unitType === 'tower') {
-                getAdjacentTiles(gameState.grid, msg.position).forEach(({position}) => {
+                getAdjacentTiles(gameState.grid, msg.position).forEach(({ position }) => {
                   const tile = gameState.grid[position.y][position.x];
-                  if (tile.type === undefined) {
+                  if (tile.type === null) {
                     let tile = gameState.grid[position.y][position.x]
                     gameState.grid[position.y][position.x] = {
                       ...tile,
@@ -198,23 +189,19 @@ const server = Bun.serve<undefined>({
                     };
                   }
                 });
+              }
 
-                gameState.grid[y][x] = {
-                    owner: msg.username,
-                    size: (target?.size ?? 0) + 1,
-                    type: target.type
-                  };
-
-
-            } else {
-              console.log(msg, target)
-              throw new Error("You can't do that");
-
-            }
+              gameState.grid[y][x] = {
+                  owner: msg.username,
+                  size: (target?.size ?? 0) + 1,
+                  type: msg.unitType
+                };
 
 
-              // Update and broadcast state
+              // Update game state
               setState(room.id, gameState);
+
+              // Broadcast new state
               server.publish(
                 msg.roomId,
                 JSON.stringify({
@@ -222,12 +209,11 @@ const server = Bun.serve<undefined>({
                   state: gameState
                 })
               );
-
+            }
               break;
+            }
           }
-          }
-        }
-      } catch (err: any) {
+        } catch (err: any) {
         console.error("Error:", err.message);
         ws.send(
           JSON.stringify({
