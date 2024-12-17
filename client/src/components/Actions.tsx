@@ -1,15 +1,15 @@
 import { useGameStore } from "@/store/game";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { ClientMessage, UnitCosts, UnitType } from "@server/types";
+import { BuyUnits, ClientMessage, UnitCosts } from "@server/types";
 import { Dispatch, ReactNode, SetStateAction, useMemo } from "react";
 
 export default function ActionPanel({
   selectedUnit,
   setSelectedUnit,
 }: {
-  selectedUnit: UnitType | undefined;
-  setSelectedUnit: Dispatch<SetStateAction<UnitType | undefined>>;
+  selectedUnit: BuyUnits | undefined;
+  setSelectedUnit: Dispatch<SetStateAction<BuyUnits | undefined>>;
 }): ReactNode {
   const game = useGameStore(({state}) => state);
   const {send} = useSocketStore();
@@ -48,7 +48,7 @@ export default function ActionPanel({
         {Object.entries(UnitCosts).map(([unit, cost], index) => (
           <button
             key={index}
-            aria-selected={selectedUnit == (unit as UnitType)}
+            aria-selected={selectedUnit == (unit as BuyUnits)}
             disabled={
               disabled || game.players[username].points < cost
             }
@@ -58,7 +58,7 @@ export default function ActionPanel({
             onClick={() => {
               if (disabled) return;
               if (selectedUnit) setSelectedUnit(undefined);
-              else setSelectedUnit(unit as UnitType);
+              else setSelectedUnit(unit as BuyUnits);
             }}
           >
             <div className="flex justify-evenly items-center">

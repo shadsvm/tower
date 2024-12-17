@@ -1,20 +1,18 @@
 import { nanoid } from "nanoid";
 import {
-    calculatePoints,
-    getGameState,
-    initializeGame,
-    setGameState,
-} from "./game";
+  getState,
+  init,
+  setState,
+} from "./init";
 import {
-    ClientMessage,
-    ServerMessage,
-    UnitCosts,
-    UnitType,
-    type ClientMessages,
-    type GameState,
-    type Room,
+  ClientMessage,
+  ServerMessage,
+  UnitCosts,
+  type ClientMessages,
+  type GameState,
+  type Room
 } from "./types";
-import { canPlaceOnTile } from "./utils";
+import { calculatePoints, getAdjacentTiles } from "./utils";
 
 const rooms = new Map<string, Room>();
 
@@ -83,7 +81,9 @@ const server = Bun.serve<undefined>({
             ws.subscribe(msg.roomId);
 
             // Initialize and start game immediately
-            const gameState = initializeGame(room);
+            const gameState = init(room);
+            setState(room.id, gameState);
+
             room.state = "playing";
 
             // Notify everyone in room
@@ -102,7 +102,7 @@ const server = Bun.serve<undefined>({
             if (!room) return;
 
             // Get game state
-            const gameState = getGameState(room.id); // We'll create this function
+            const gameState = getState(room.id); // We'll create this function
             if (!gameState) return;
 
             // Validate it's actually their turn
@@ -117,7 +117,6 @@ const server = Bun.serve<undefined>({
                 gameState.grid,
                 username,
               );
-              players[username].actionTaken = false; // Reset action flag
             });
 
             // Switch turns
@@ -134,7 +133,7 @@ const server = Bun.serve<undefined>({
             };
 
             // Store and broadcast new state
-            setGameState(room.id, newState); // We'll create this function
+            setState(room.id, newState); // We'll create this function
             server.publish(
               msg.roomId,
               JSON.stringify({
@@ -148,7 +147,7 @@ const server = Bun.serve<undefined>({
             const room = rooms.get(msg.roomId);
             if (!room) return;
 
-            const gameState = getGameState(room.id);
+            const gameState = getState(room.id);
             if (!gameState) return;
 
             // Validate turn
@@ -158,52 +157,74 @@ const server = Bun.serve<undefined>({
 
             // Get player data
             const player = gameState.players[msg.username];
-            if (player.actionTaken) {
-              throw new Error("You've already taken an action this turn!");
-            }
 
             // Check if they can afford it
-            const cost = UnitCosts[msg.unitType];
+            const cost = UnitCosts[msg?.unitType];
             if (player.points < cost) {
               throw new Error("Not enough points!");
             }
 
-            // Validate placement position
-            if (!canPlaceOnTile(gameState.grid, msg.position, msg.username)) {
-              throw new Error("Invalid placement position!");
+            const { x, y } = msg.position;
+            const target = gameState.grid[y][x];
+
+
+
+            if (target.owner === msg.username || target.owner === null) {
+
+              if (msg.unitType === 'soldier') {
+                  gameState.grid[y][x] = {
+                      owner: msg.username,
+                      size: (target?.size ?? 0) + 1,
+                      type: target.type
+                    };
+                // const adjacent = getAdjacentTiles(gameState.grid, msg.position)
+                // console.log('adjacent',adjacent)
+                // const isAdjacent = adjacent.find((_) => _.tile.owner === msg.username)
+                // console.log('isAdjacent',adjacent)
+                // if (adjacent.length) {
+                // }
+                //   else {
+                //   throw new Error("Can only place units on owned or adjacent tiles!");
+                // }
+              }
+              if (msg.unitType === 'tower') {
+                getAdjacentTiles(gameState.grid, msg.position).forEach(({position}) => {
+                  const tile = gameState.grid[position.y][position.x];
+                  if (tile.type === undefined) {
+                    let tile = gameState.grid[position.y][position.x]
+                    gameState.grid[position.y][position.x] = {
+                      ...tile,
+                      owner: msg.username,
+                    };
+                  }
+                });
+
+                gameState.grid[y][x] = {
+                    owner: msg.username,
+                    size: (target?.size ?? 0) + 1,
+                    type: target.type
+                  };
+
+
+            } else {
+              console.log(msg, target)
+              throw new Error("You can't do that");
+
             }
 
-            const { x, y } = msg.position;
-            const targetTile = gameState.grid[y][x];
-            const unitCount = msg.unitType === UnitType.SOLDIER ? 5 : 10;
 
-            // Place units
-            gameState.grid[y][x] = {
-              owner: msg.username,
-              // Add to existing units if we own the tile
-              units: targetTile.owner === msg.username
-                ? targetTile.units + unitCount
-                : unitCount,
-              type: msg.unitType === UnitType.TOWER ? "tower" : "empty"
-            };
+              // Update and broadcast state
+              setState(room.id, gameState);
+              server.publish(
+                msg.roomId,
+                JSON.stringify({
+                  type: ServerMessage.GAME_STATE,
+                  state: gameState
+                })
+              );
 
-            // Deduct points and mark action taken
-            player.points -= cost;
-            player.actionTaken = true;
-
-            // Update game state
-            setGameState(room.id, gameState);
-
-            // Broadcast new state
-            server.publish(
-              msg.roomId,
-              JSON.stringify({
-                type: ServerMessage.GAME_STATE,
-                state: gameState
-              })
-            );
-
-            break;
+              break;
+          }
           }
         }
       } catch (err: any) {

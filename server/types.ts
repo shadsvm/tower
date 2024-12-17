@@ -8,22 +8,16 @@ export type Player = {
   username: string;
   points: number;
   castle: Position;
-  actionTaken: boolean;
   ws: ServerWebSocket;
 };
 
 
-export type Tile = {
-  owner: string | null;
-  units: number;
-  type: "empty" | "castle" | "tower";
-};
+
 
 export type GamePlayer = {
   username: string;
   points: number;
   castle: Position;
-  actionTaken: boolean;
 };
 
 export type GameState = {
@@ -67,6 +61,7 @@ export enum ClientMessage {
   BUY_UNIT = "BUY_UNIT",
 }
 
+
 export type ClientMessages =
   | { type: ClientMessage.CREATE_ROOM; username: string }
   | { type: ClientMessage.JOIN_ROOM; roomId: string; username: string }
@@ -75,16 +70,35 @@ export type ClientMessages =
       type: ClientMessage.BUY_UNIT;
       username: string;
       roomId: string;
-      unitType: UnitType;
+      unitType: BuyUnits;
       position: Position;
     };
 
-export enum UnitType {
-  SOLDIER = "🥷",
-  TOWER = "🗼",
+
+export type Tile = {
+  type: BuyUnits | 'castle' | null,
+  size: number | null
+  owner: string | null
+};
+interface Soldier {
+  type: 'soldier',
+  size: number
+  owner: string
+}
+interface Tower {
+  type: 'tower'
+  size: number
+  owner: string
+}
+interface Castle {
+  type: 'castle'
+  size: null
+  owner: string
 }
 
-export const UnitCosts: Record<UnitType, number> = {
-  [UnitType.SOLDIER]: 10,
-  [UnitType.TOWER]: 50,
-};
+export type BuyUnits =  'tower' | 'soldier'
+
+export const UnitCosts = {
+  'soldier': 10,
+  'tower': 50,
+} as const;

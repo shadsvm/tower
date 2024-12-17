@@ -19,19 +19,12 @@ export default function Tile({
       className={`size-13 ${getColor()} rounded hover:bg-neutral-900 transition drop-shadow-md relative`}
       {...rest}
     >
-      {tile.type === "castle" && (
         <span className="absolute inset-0 flex items-center justify-center">
-          🏰
+          {tile?.type}
         </span>
-      )}
-      {tile.type === "tower" && (
-        <span className="absolute inset-0 flex items-center justify-center">
-          🗼
-        </span>
-      )}
-      {tile.units > 0 && (
+      {(tile?.size ?? 0) > 0 && (
         <span className="absolute bottom-0 right-0 text-xs p-1">
-          {tile.units}
+          {tile.size}
         </span>
       )}
     </div>

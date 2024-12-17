@@ -7,6 +7,32 @@ export type Adjacent = {
   position: Position;
 };
 
+export function calculatePoints(grid: Tile[][], username: string): number {
+  return grid
+    .flat()
+    .reduce((total, tile) => (tile.owner === username ? total + 10 : total), 0);
+}
+
+export function getAdjacentCoast(grid: Tile[][], owner: string): Adjacent[] {
+  const adjacent: Adjacent[] = [];
+
+  for (let [y, row] of Object.entries(grid)) {
+    for (let [x, tile] of Object.entries(row)) {
+      if (row[(Number(x)+1)].owner === owner && !tile.owner) {
+        adjacent.push({
+          tile, position: {
+            x: Number(x),
+            y: Number(y)
+          }
+        })
+        continue;
+      }
+    }
+  }
+
+  return adjacent
+}
+
 export function getAdjacentTiles(grid: Tile[][], position: Position): Adjacent[] {
   const adjacent: Adjacent[] = [];
   const directions = [
@@ -35,11 +61,6 @@ export function canPlaceOnTile(
 ): boolean {
   const targetTile = grid[position.y][position.x];
 
-  // Can't build on buildings
-  if (targetTile.type === "castle" || targetTile.type === "tower") {
-    return false;
-  }
-
   // Can build on owned tile
   if (targetTile.owner === username) {
     return true;
@@ -47,5 +68,5 @@ export function canPlaceOnTile(
 
   // Can build next to owned tiles
   const adjacentTiles = getAdjacentTiles(grid, position);
-  return adjacentTiles.some(({tile}) => tile.owner === username);
+  return adjacentTiles.some(({ tile }) => tile.owner === username);
 }
