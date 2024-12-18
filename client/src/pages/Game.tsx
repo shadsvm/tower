@@ -25,17 +25,19 @@ export default function Game() {
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-between items-center text-lg">
-        <div className={disabled ? 'text-error' : 'text-info'}>
+      <header className="  border-b-2 border-stone-500 py-2 flex justify-between items-center text-lg">
+        <div className="flex-1 overflow-hidden inline-flex space-x-2">
+          <p className="text-stone-300">Turn:</p>
           {disabled
-            ? `Waiting for ${state.currentTurn}`
-            : "Your turn!"}
+            ? <p className="text-error">{state.currentTurn}</p>
+            : <p className="text-info">Your turn!</p>
+          }
         </div>
-        <div className="flex justify-center items-center gap-2 mr-8">
+        <div className="text-success">
           {state.players[username].points}
-          💰
+          $
         </div>
-      </div>
+      </header>
 
 
       <div
