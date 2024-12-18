@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: var(--color-blue-500);
+  --color-primary: var(--color-indigo-500);
   --color-success: var(--color-green-500);
   --color-error: var(--color-red-500);
   --color-warn: var(--color-orange-500);
@@ -44,10 +44,12 @@
             not-disabled:hover:text-white focus:outline-none focus:ring not-disabled:focus:ring-neutral-400
   }
 
-  .btn-white            { @apply bg-white/20 border border-white text-white not-disabled:hover:bg-white not-disabled:hover:text-black }
+  .btn-white            { @apply bg-white/20 border border-white text-white not-disabled:hover:bg-white not-disabled:hover:text-black aria-selected:bg-white aria-selected:text-black }
+  .btn-gray            { @apply bg-gray-500/20 border border-gray-500 text-white not-disabled:hover:bg-white not-disabled:hover:text-black aria-selected:bg-white aria-selected:text-black }
   .btn-warn             { @apply bg-warn/20 border border-warn text-warn not-disabled:hover:bg-warn/90 }
   .btn-error            { @apply bg-error/20 border border-error text-error not-disabled:hover:bg-error/90 }
   .btn-success          { @apply bg-success/20 border border-success text-success not-disabled:hover:bg-success/90 }
+  .btn-info          { @apply bg-info/20 border border-info text-info not-disabled:hover:bg-info/90 }
 
   .btn-outline          { @apply bg-transparent border not-disabled:hover:bg-white not-disabled:hover:text-black }
   .btn-outline-warn     { @apply bg-transparent text-warn border border-warn not-disabled:hover:bg-warn not-disabled:hover:text-black }

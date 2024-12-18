@@ -9,10 +9,9 @@ import {
   ServerMessage,
   UnitCosts,
   type ClientMessages,
-  type GameState,
   type Room
 } from "./types";
-import { calculatePoints, getAdjacentTiles } from "./utils";
+import { calculatePoints, endTurn, getAdjacentTiles } from "./utils";
 
 const rooms = new Map<string, Room>();
 
@@ -119,18 +118,7 @@ const server = Bun.serve<undefined>({
               );
             });
 
-            // Switch turns
-            const playerUsernames = Object.keys(players);
-            const currentIndex = playerUsernames.indexOf(gameState.currentTurn);
-            const nextPlayer =
-              playerUsernames[(currentIndex + 1) % playerUsernames.length];
-
-            const newState: GameState = {
-              ...gameState,
-              players,
-              currentTurn: nextPlayer,
-              turnNumber: gameState.turnNumber + 1,
-            };
+           const newState = endTurn(gameState)
 
             // Store and broadcast new state
             setState(room.id, newState); // We'll create this function

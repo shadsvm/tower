@@ -1,6 +1,6 @@
 // New utility file for game logic
 import { GRID_SIZE } from "./constant";
-import type { Position, Tile } from "./types";
+import type { GameState, Position, Tile } from "./types";
 
 export type Adjacent = {
   tile: Tile;
@@ -69,4 +69,17 @@ export function canPlaceOnTile(
   // Can build next to owned tiles
   const adjacentTiles = getAdjacentTiles(grid, position);
   return adjacentTiles.some(({ tile }) => tile.owner === username);
+}
+
+export function endTurn(gameState: GameState): GameState {
+    const playerUsernames = Object.keys(gameState.players);
+    const currentIndex = playerUsernames.indexOf(gameState.currentTurn);
+    const nextPlayer =
+      playerUsernames[(currentIndex + 1) % playerUsernames.length];
+
+    return {
+      ...gameState,
+      currentTurn: nextPlayer,
+      turnNumber: gameState.turnNumber + 1,
+    };
 }

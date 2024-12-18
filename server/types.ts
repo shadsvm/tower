@@ -102,3 +102,9 @@ export const UnitCosts = {
   'soldier': 10,
   'tower': 50,
 } as const;
+
+export const UnitsIcons = {
+  'soldier': '🥷',
+  'castle': '🏰',
+  'tower': '🗼',
+} as const

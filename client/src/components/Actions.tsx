@@ -1,8 +1,8 @@
 import { useGameStore } from "@/store/game";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { BuyUnits, ClientMessage, UnitCosts } from "@server/types";
-import { Dispatch, ReactNode, SetStateAction, useMemo } from "react";
+import { BuyUnits, ClientMessage, UnitCosts, UnitsIcons } from "@server/types";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 
 export default function ActionPanel({
   selectedUnit,
@@ -14,61 +14,43 @@ export default function ActionPanel({
   const game = useGameStore(({state}) => state);
   const {send} = useSocketStore();
   const {username} = useUserStore();
-  const disabled = useMemo(() => game?.currentTurn !== username, [username,game?.currentTurn])
 
   if (game != undefined) return (
-    <section className="group card flex flex-col gap-6">
-      <div className="flex justify-between items-center text-xl">
-        <div className={disabled ? 'text-error' : 'text-primary'}>
-          {disabled
-            ? `Waiting for ${game.currentTurn}`
-            : "Your turn!"}
-        </div>
-        <div className="flex justify-center items-center gap-2 mr-8">
-          {game.players[username].points}
-          💰
-        </div>
-      </div>
-
-        {!disabled &&
-      <div className="flex justify-start items-center gap-5">
-          <button
-            onClick={() => {
-              send({ type: ClientMessage.END_TURN });
-            }}
-            disabled={disabled}
-            className={
-              "btn btn-white"
-            }
-          >
-            🤚 End Turn
-          </button>
-
-
+        <div className="flex justify-end items-center gap-3">
         {Object.entries(UnitCosts).map(([unit, cost], index) => (
           <button
             key={index}
             aria-selected={selectedUnit == (unit as BuyUnits)}
             disabled={
-              disabled || game.players[username].points < cost
+               game.players[username].points < cost
             }
             className={
-              "btn btn-white aria-selected:bg-green-600  transition"
+              "btn btn-white text-sm  p-1 transition"
             }
             onClick={() => {
-              if (disabled) return;
               if (selectedUnit) setSelectedUnit(undefined);
               else setSelectedUnit(unit as BuyUnits);
             }}
           >
-            <div className="flex justify-evenly items-center">
-              <p>{unit}</p>
-              <p>{cost}$</p>
+            <div className="flex flex-col justify-evenly items-center p-0">
+              <p className="text-2xl">{UnitsIcons[unit as BuyUnits]}</p>
+              <p className="text-xs">-{cost}$</p>
             </div>
           </button>
         ))}
-      </div>
-        }
-    </section>
+        <button
+          onClick={() => {
+            send({ type: ClientMessage.END_TURN });
+          }}
+          className={
+            "btn btn-white text-md"
+          }
+        >
+          <p>End</p>
+          <p>Turn</p>
+        </button>
+        </div>
+
+
   );
 }
