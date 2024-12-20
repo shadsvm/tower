@@ -1,15 +1,16 @@
 import { useGameStore } from "@/store/game";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { BuyUnits, ClientMessage, UnitCosts, UnitsIcons } from "@server/types";
+import { UnitsIcons, UnitsPrices } from "@server/constant";
+import { BuyableUnits, ClientMessage } from "@server/types";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 
 export default function ActionPanel({
-  selectedUnit,
-  setSelectedUnit,
+  buyUnit,
+  setBuyUnit,
 }: {
-  selectedUnit: BuyUnits | undefined;
-  setSelectedUnit: Dispatch<SetStateAction<BuyUnits | undefined>>;
+  buyUnit: BuyableUnits | undefined;
+  setBuyUnit: Dispatch<SetStateAction<BuyableUnits | undefined>>;
 }): ReactNode {
   const game = useGameStore(({state}) => state);
   const {send} = useSocketStore();
@@ -17,10 +18,10 @@ export default function ActionPanel({
 
   if (game != undefined) return (
         <div className="flex justify-end items-center gap-3">
-        {Object.entries(UnitCosts).map(([unit, cost], index) => (
+        {Object.entries(UnitsPrices).map(([unit, cost], index) => (
           <button
             key={index}
-            aria-selected={selectedUnit == (unit as BuyUnits)}
+            aria-selected={buyUnit == (unit as BuyableUnits)}
             disabled={
                game.players[username].points < cost
             }
@@ -28,12 +29,11 @@ export default function ActionPanel({
               "btn btn-white text-sm  p-1 transition"
             }
             onClick={() => {
-              if (selectedUnit) setSelectedUnit(undefined);
-              else setSelectedUnit(unit as BuyUnits);
+              setBuyUnit(buyUnit ? undefined : unit as BuyableUnits);
             }}
           >
             <div className="flex flex-col justify-evenly items-center p-0">
-              <p className="text-2xl">{UnitsIcons[unit as BuyUnits]}</p>
+              <p className="text-2xl">{UnitsIcons[unit as BuyableUnits]}</p>
               <p className="text-xs">-{cost}$</p>
             </div>
           </button>
@@ -50,7 +50,5 @@ export default function ActionPanel({
           <p>Turn</p>
         </button>
         </div>
-
-
   );
 }

@@ -26,11 +26,11 @@ export default function Start() {
 
   return (
     <div className="card">
-      <header className="text-center space-y-3 p-6">
-        <div className="text-4xl">Tower</div>
+      <header className="text-center space-y-4 p-6">
+        <div className="text-4xl text-orange-100">Tower🗼</div>
         <div className={ `flex flex-row gap-2 justify-center items-center  ${serverStatus ? 'text-green-700' : 'text-red-400'}`}>
-          <div className="size-3 rounded-full border bg-current" />
-          <p className="text-sm">Servers Status</p>
+          <div className="size-2 rounded-full border bg-current" />
+          <p className="text-xs">Servers Status</p>
         </div>
       </header>
 

@@ -1,2 +1,18 @@
-export const GRID_SIZE = 6;
-export const INITIAL_POINTS = 50;
+import { Units } from "./types";
+
+export const Config = {
+  gridSize: 6,
+  initialPoints: 50,
+  incrementPoints: 10
+} as const
+
+export const UnitsPrices = {
+  [Units.SOLDIER]: 10,
+  [Units.TOWER]: 50,
+} as const;
+
+export const UnitsIcons = {
+  [Units.SOLDIER]: '🥷',
+  [Units.CASTLE]: '🏰',
+  [Units.TOWER]: '🗼',
+} as const

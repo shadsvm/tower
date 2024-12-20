@@ -1,4 +1,4 @@
-import { ClientMessage, Position, ServerMessage, UnitType, type ServerMessages } from '@server/types';
+import { ClientMessage, Position, ServerMessage, Units, type ServerMessages } from '@server/types';
 import { create } from 'zustand';
 import { useGameStore } from './game';
 import { useUserStore } from './user';
@@ -6,8 +6,9 @@ import { useUserStore } from './user';
 
 interface SocketSend {
   type: ClientMessage;
-  unitType?: UnitType;
+  unitType?: Units;
   position?: Position;
+  destination?: Position;
   roomId?: string;
 }
 

@@ -1,5 +1,5 @@
-import { GRID_SIZE, INITIAL_POINTS } from "./constant";
-import type { GamePlayer, GameState, Room, Tile } from "./types";
+import { Config } from "./constant";
+import { Units, type GamePlayer, type GameState, type Room, type Tile } from "./types";
 // Game state storage
 const gameStates = new Map<string, GameState>();
 
@@ -14,15 +14,16 @@ export function getState(roomId: string): GameState | undefined {
 export function init(room: Room): GameState {
   const players: Record<string, GamePlayer> | never = {};
   const [player1, player2] = room.players.keys();
+  const { gridSize, initialPoints } = Config;
 
   const castles = Object.entries({
     [player1]: { x: 0, y: 0 },
-    [player2]: { x: GRID_SIZE - 1, y: GRID_SIZE - 1 }
+    [player2]: { x: gridSize - 1, y: gridSize - 1 }
   })
-  const grid: Tile[][] = Array(GRID_SIZE)
+  const grid: Tile[][] = Array(gridSize)
     .fill(null)
     .map(() =>
-      Array(GRID_SIZE)
+      Array(gridSize)
         .fill(null)
         .map(() => ({
           owner: null,
@@ -32,10 +33,10 @@ export function init(room: Room): GameState {
     );
 
   for (let [owner, cords] of castles) {
-    grid[cords.y][cords.x] = { owner, size: null, type: 'castle'}
+    grid[cords.y][cords.x] = { owner, size: null, type: Units.CASTLE}
     players[owner] = {
       username: owner,
-      points: INITIAL_POINTS,
+      points: initialPoints,
       castle: cords
     }
   }

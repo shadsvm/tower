@@ -1,5 +1,4 @@
-// New utility file for game logic
-import { GRID_SIZE } from "./constant";
+import { Config } from "./constant";
 import type { GameState, Position, Tile } from "./types";
 
 export type Adjacent = {
@@ -10,7 +9,7 @@ export type Adjacent = {
 export function calculatePoints(grid: Tile[][], username: string): number {
   return grid
     .flat()
-    .reduce((total, tile) => (tile.owner === username ? total + 10 : total), 0);
+    .reduce((total, tile) => (tile.owner === username ? total + Config.incrementPoints : total), 0);
 }
 
 export function getAdjacentCoast(grid: Tile[][], owner: string): Adjacent[] {
@@ -42,8 +41,9 @@ export function getAdjacentTiles(grid: Tile[][], position: Position): Adjacent[]
   for (const [dx, dy] of directions) {
     const x = position.x + dx;
     const y = position.y + dy;
+    const {gridSize} = Config
 
-    if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+    if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
       adjacent.push({
         tile: grid[y][x],
         position: { x, y }
@@ -54,7 +54,7 @@ export function getAdjacentTiles(grid: Tile[][], position: Position): Adjacent[]
   return adjacent;
 }
 
-export function canPlaceOnTile(
+function canPlaceOnTile(
   grid: Tile[][],
   position: Position,
   username: string

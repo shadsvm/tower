@@ -1,15 +1,16 @@
 import { nanoid } from "nanoid";
+import { UnitsPrices } from "./constant";
 import {
-  getState,
-  init,
-  setState,
+    getState,
+    init,
+    setState,
 } from "./init";
 import {
-  ClientMessage,
-  ServerMessage,
-  UnitCosts,
-  type ClientMessages,
-  type Room
+    ClientMessage,
+    ServerMessage,
+    Units,
+    type ClientMessages,
+    type Room
 } from "./types";
 import { calculatePoints, endTurn, getAdjacentTiles } from "./utils";
 
@@ -39,7 +40,6 @@ const server = Bun.serve<undefined>({
       return new Response(Bun.file("./client/dist" + url.pathname));
     }
   },
-  // ... other config
   websocket: {
     message(ws, message) {
       try {
@@ -52,7 +52,7 @@ const server = Bun.serve<undefined>({
             const room: Room = {
               id: roomId,
               players: new Map([
-                [msg.username, { username: msg.username, ws }]  // Now matches RoomPlayer type
+                [msg.username, { username: msg.username, ws }]
               ]),
               state: "waiting",
             };
@@ -82,7 +82,6 @@ const server = Bun.serve<undefined>({
             // Initialize and start game immediately
             const gameState = init(room);
             setState(room.id, gameState);
-
             room.state = "playing";
 
             // Notify everyone in room
@@ -121,7 +120,7 @@ const server = Bun.serve<undefined>({
            const newState = endTurn(gameState)
 
             // Store and broadcast new state
-            setState(room.id, newState); // We'll create this function
+            setState(room.id, newState);
             server.publish(
               msg.roomId,
               JSON.stringify({
@@ -138,16 +137,12 @@ const server = Bun.serve<undefined>({
             const gameState = getState(room.id);
             if (!gameState) return;
 
-            // Validate turn
             if (gameState.currentTurn !== msg.username) {
               throw new Error("Not your turn!");
             }
 
-            // Get player data
             const player = gameState.players[msg.username];
-
-            // Check if they can afford it
-            const cost = UnitCosts[msg?.unitType];
+            const cost = UnitsPrices[msg?.unitType];
             if (player.points < cost) {
               throw new Error("Not enough points!");
             }
@@ -155,18 +150,16 @@ const server = Bun.serve<undefined>({
             const { x, y } = msg.position;
             const target = gameState.grid[y][x];
 
-
-
             if (target.owner === msg.username || target.owner === null) {
 
-              if (msg.unitType === 'soldier') {
+              if (msg.unitType ===  Units.SOLDIER) {
                 const adjacent = getAdjacentTiles(gameState.grid, msg.position)
                 const isAdjacent = adjacent.find((_) => _.tile.owner === msg.username)
                 if (!isAdjacent) {
                   throw new Error("Can only place units on owned or adjacent tiles!");
                 }
               }
-              if (msg.unitType === 'tower') {
+              if (msg.unitType === Units.TOWER) {
                 getAdjacentTiles(gameState.grid, msg.position).forEach(({ position }) => {
                   const tile = gameState.grid[position.y][position.x];
                   if (tile.type === null) {
@@ -185,22 +178,112 @@ const server = Bun.serve<undefined>({
                   type: msg.unitType
                 };
 
+              const newState = endTurn(gameState)
 
               // Update game state
-              setState(room.id, gameState);
+              setState(room.id, newState);
 
               // Broadcast new state
               server.publish(
                 msg.roomId,
                 JSON.stringify({
                   type: ServerMessage.GAME_STATE,
-                  state: gameState
+                  state: newState
                 })
               );
             }
-              break;
-            }
+            break;
           }
+
+          case ClientMessage.MOVE_UNIT: {
+            const room = rooms.get(msg.roomId);
+            if (!room) return;
+
+            const gameState = getState(room.id);
+            if (!gameState) return;
+
+            if (gameState.currentTurn !== msg.username) {
+              throw new Error("Not your turn!");
+            }
+
+            // const player = gameState.players[msg.username];
+            const soldierTile = gameState.grid[msg.position.y][msg.position.x];
+            const targetTile = gameState.grid[msg.destination.y][msg.destination.x];
+
+            if (soldierTile.type !==  Units.SOLDIER) {
+              throw new Error("This unit cannot move")
+            }
+
+            if (soldierTile.owner !==  msg.username) {
+              throw new Error("This is not yours unit")
+            }
+
+            if (soldierTile.owner !==  msg.username) {
+              throw new Error("This is not yours unit")
+            }
+
+            const adjacent = getAdjacentTiles(gameState.grid, msg.position)
+            const isAdjacent = !!(adjacent.find(({position: {x, y}}) => x === msg.destination.x && y === msg.destination.y))
+
+            if (!isAdjacent) {
+              throw new Error("Outside of your reach!");
+            }
+
+            if (targetTile.type === null) {
+              gameState.grid[msg.position.y][msg.position.x] = {
+                  owner: msg.username,
+                  size: null,
+                  type: null
+                };
+              gameState.grid[msg.destination.y][msg.destination.x] = {...soldierTile};
+            }
+
+            if (targetTile.owner === soldierTile.owner) {
+              if (targetTile.type === Units.SOLDIER) {
+                gameState.grid[msg.position.y][msg.position.x] = {
+                  owner: msg.username,
+                  size: null,
+                  type: null
+                };
+                gameState.grid[msg.destination.y][msg.destination.x] = {
+                  owner: msg.username,
+                  size: soldierTile.size + targetTile.size,
+                  type: Units.SOLDIER
+                  };
+                }
+              else {
+                throw new Error('You cant do that!')
+              }
+            }
+
+            if (targetTile.size) {
+              const fightWinner = soldierTile.size > targetTile.size
+                ? {...soldierTile, owner: soldierTile.owner, size: soldierTile.size - targetTile.size}
+                : {...targetTile, owner: targetTile.owner, size: targetTile.size - soldierTile.size}
+
+              gameState.grid[msg.position.y][msg.position.x] = {
+                owner: msg.username,
+                size: null,
+                type: null
+              };
+              gameState.grid[msg.destination.y][msg.destination.x] = fightWinner;
+            }
+
+            // throw new Error("Tower is blocking your way");
+            const newState = endTurn(gameState)
+
+            setState(room.id, newState);
+            server.publish(
+              msg.roomId,
+              JSON.stringify({
+                type: ServerMessage.GAME_STATE,
+                state: newState
+              })
+            );
+          }
+        break;
+        }
+
         } catch (err: any) {
         console.error("Error:", err.message);
         ws.send(
