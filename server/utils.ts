@@ -6,30 +6,11 @@ export type Adjacent = {
   position: Position;
 };
 
+
 export function calculatePoints(grid: Tile[][], username: string): number {
   return grid
     .flat()
     .reduce((total, tile) => (tile.owner === username ? total + Config.incrementPoints : total), 0);
-}
-
-export function getAdjacentCoast(grid: Tile[][], owner: string): Adjacent[] {
-  const adjacent: Adjacent[] = [];
-
-  for (let [y, row] of Object.entries(grid)) {
-    for (let [x, tile] of Object.entries(row)) {
-      if (row[(Number(x)+1)].owner === owner && !tile.owner) {
-        adjacent.push({
-          tile, position: {
-            x: Number(x),
-            y: Number(y)
-          }
-        })
-        continue;
-      }
-    }
-  }
-
-  return adjacent
 }
 
 export function getAdjacentTiles(grid: Tile[][], position: Position): Adjacent[] {
@@ -54,25 +35,14 @@ export function getAdjacentTiles(grid: Tile[][], position: Position): Adjacent[]
   return adjacent;
 }
 
-function canPlaceOnTile(
-  grid: Tile[][],
-  position: Position,
-  username: string
-): boolean {
-  const targetTile = grid[position.y][position.x];
-
-  // Can build on owned tile
-  if (targetTile.owner === username) {
-    return true;
-  }
-
-  // Can build next to owned tiles
-  const adjacentTiles = getAdjacentTiles(grid, position);
-  return adjacentTiles.some(({ tile }) => tile.owner === username);
-}
-
 export function endTurn(gameState: GameState): GameState {
     const playerUsernames = Object.keys(gameState.players);
+    playerUsernames.forEach((username) => {
+      gameState.players[username].points += calculatePoints(
+        gameState.grid,
+        username,
+      );
+    });
     const currentIndex = playerUsernames.indexOf(gameState.currentTurn);
     const nextPlayer =
       playerUsernames[(currentIndex + 1) % playerUsernames.length];

@@ -45,9 +45,11 @@ export default function Tile({
           {UnitsIcons[tile?.type]}
         </span>
         }
-      {(tile?.size ?? 0) > 0 && (
+      {tile?.size && (
         <span className="absolute top-0 right-0 text-xs p-1">
           {tile.size}
+          {tile.type === Units.SOLDIER && '⚔️'}
+          {tile.type === Units.TOWER && '🛡️'}
         </span>
       )}
     </div>

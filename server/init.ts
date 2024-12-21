@@ -1,6 +1,6 @@
 import { Config } from "./constant";
 import { Units, type GamePlayer, type GameState, type Room, type Tile } from "./types";
-// Game state storage
+
 const gameStates = new Map<string, GameState>();
 
 export function setState(roomId: string, state: GameState) {
