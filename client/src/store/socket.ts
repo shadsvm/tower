@@ -35,7 +35,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   ws: null,
 
   connect: () => {
-    const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}//${window.location.hostname}:3000`);
+    const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:3000`);
     const setGame = useGameStore.getState().setState;
 
     socket.onopen = () => {
