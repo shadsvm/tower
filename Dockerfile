@@ -7,11 +7,9 @@ ENV NODE_ENV="production"
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
-
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
-
 
 # Install node modules
 COPY --link bun.lockb package.json ./
@@ -27,7 +25,6 @@ COPY --link . .
 # Change to client directory and build the client app
 WORKDIR /app/client
 RUN bun run build
-
 # Remove all files in client except for the dist folder
 RUN find . -mindepth 1 ! -regex '^./dist\(/.*\)?' -delete
 
@@ -38,4 +35,5 @@ FROM base
 COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
+EXPOSE 3000
 CMD [ "bun", "run", "start" ]

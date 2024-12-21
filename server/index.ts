@@ -28,10 +28,9 @@ const server = Bun.serve<undefined>({
   },
   fetch(req) {
     const url = new URL(req.url);
-
-    // When upgrade succeeds, we need to return undefined explicitly
     if (server.upgrade(req)) {
       return undefined;
+      // When upgrade succeeds, we need to return undefined explicitly
     }
 
     if (url.pathname === "/") {

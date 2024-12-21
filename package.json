@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "cd client && bun install && bun run build",
-    "start": "bun run server/index.ts",
-    "dev": "bun run start"
+    "start": "bun run server/index.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.1.13"
