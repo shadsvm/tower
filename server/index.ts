@@ -67,15 +67,16 @@ const server = Bun.serve<undefined>({
           case ClientMessage.JOIN_ROOM: {
             const room = rooms.get(msg.roomId);
             if (!room) {
-              throw new Error("Room not found");
+              throw new Error("⚠️ Room not found");
             }
 
             if (room.players.size >= 2) {
-              throw new Error("Room is full");
+              throw new Error("⚠️ Room is full");
             }
 
             // Second player joins
-            room.players.set(msg.username, { username: msg.username, ws });  // Now matches RoomPlayer type
+            room.players.set(msg.username, { username: msg.username, ws });
+            // Now matches RoomPlayer type
             ws.subscribe(msg.roomId);
 
             // Initialize and start game immediately
@@ -101,8 +102,9 @@ const server = Bun.serve<undefined>({
             const gameState = getState(room.id);
             if (!gameState) return;
 
+
             if (gameState.currentTurn !== msg.username) {
-              throw new Error("Not your turn!");
+              throw new Error("⚠️ Not your turn!");
             }
 
             const newState = endTurn(gameState)
@@ -124,8 +126,9 @@ const server = Bun.serve<undefined>({
             const gameState = getState(room.id);
             if (!gameState) return;
 
+
             if (gameState.currentTurn !== msg.username) {
-              throw new Error("Not your turn!");
+              throw new Error("⚠️ Not your turn!");
             }
 
             const player = gameState.players[msg.username];
@@ -187,7 +190,7 @@ const server = Bun.serve<undefined>({
             if (!gameState) return;
 
             if (gameState.currentTurn !== msg.username) {
-              throw new Error("ℹ️ Not your turn!");
+              throw new Error("⚠️ Not your turn!");
             }
 
             const origin = gameState.grid[msg.position.y][msg.position.x];
@@ -214,7 +217,9 @@ const server = Bun.serve<undefined>({
                   size: null,
                   type: null
                 };
-              gameState.grid[msg.destination.y][msg.destination.x] = {...origin};
+              gameState.grid[msg.destination.y][msg.destination.x] = {
+                ...origin
+              };
             }
 
             if (target.type === Units.TOWER) {
@@ -223,6 +228,19 @@ const server = Bun.serve<undefined>({
               }
               else if (origin.size <= target.size) {
                 throw new Error('❌ This unit is too weak to destroy this tower.')
+              }
+              else {
+                gameState.grid[msg.position.y][msg.position.x] = {
+                  owner: msg.username,
+                  size: null,
+                  type: null
+                };
+                gameState.grid[msg.destination.y][msg.destination.x] = {
+                  owner: msg.username,
+                  size: origin.size - target.size,
+                  type: Units.SOLDIER
+                  };
+
               }
             }
 
@@ -266,19 +284,18 @@ const server = Bun.serve<undefined>({
         break;
         }
 
-        } catch (err: any) {
-        console.error("Error:", err.message);
+        } catch ({message}: any) {
+        console.error("Error:", message);
         ws.send(
           JSON.stringify({
             type: ServerMessage.ERROR,
-            message: err.message,
+            message,
           }),
         );
       }
     },
 
     close(ws) {
-      // We might want to notify other player in room
       for (const [roomId, room] of rooms.entries()) {
         for (const [username, player] of room.players.entries()) {
           if (player.ws === ws) {
