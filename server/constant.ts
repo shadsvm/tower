@@ -2,8 +2,8 @@ import { Units } from "./types";
 
 export const Config = {
   gridSize: 6,
-  initialPoints: 50,
-  incrementPoints: 10
+  initialPoints: 10,
+  incrementPoints: 5
 } as const
 
 export const UnitsPrices = {
