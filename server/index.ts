@@ -67,11 +67,11 @@ const server = Bun.serve<undefined>({
           case ClientMessage.JOIN_ROOM: {
             const room = rooms.get(msg.roomId);
             if (!room) {
-              throw new Error("⚠️ Room not found");
+              throw new Error("Room not found");
             }
 
             if (room.players.size >= 2) {
-              throw new Error("⚠️ Room is full");
+              throw new Error("Room is full");
             }
 
             // Second player joins
@@ -104,7 +104,7 @@ const server = Bun.serve<undefined>({
 
 
             if (gameState.currentTurn !== msg.username) {
-              throw new Error("⚠️ Not your turn!");
+              throw new Error("Not your turn!");
             }
 
             const newState = endTurn(gameState)
@@ -128,7 +128,7 @@ const server = Bun.serve<undefined>({
 
 
             if (gameState.currentTurn !== msg.username) {
-              throw new Error("⚠️ Not your turn!");
+              throw new Error("Not your turn!");
             }
 
             const player = gameState.players[msg.username];
@@ -190,25 +190,25 @@ const server = Bun.serve<undefined>({
             if (!gameState) return;
 
             if (gameState.currentTurn !== msg.username) {
-              throw new Error("⚠️ Not your turn!");
+              throw new Error("Not your turn!");
             }
 
             const origin = gameState.grid[msg.position.y][msg.position.x];
             const target = gameState.grid[msg.destination.y][msg.destination.x];
 
             if (origin.type !==  Units.SOLDIER) {
-              throw new Error("ℹ️ This unit cannot move")
+              throw new Error("This unit cannot move")
             }
 
             if (origin.owner !==  msg.username) {
-              throw new Error("ℹ️ This is not yours unit")
+              throw new Error("This is not yours unit")
             }
 
             const adjacent = getAdjacentTiles(gameState.grid, msg.position)
             const isAdjacent = !!(adjacent.find(({position: {x, y}}) => x === msg.destination.x && y === msg.destination.y))
 
             if (!isAdjacent) {
-              throw new Error("ℹ️ Outside of your reach");
+              throw new Error("Outside of your reach");
             }
 
             if (target.type === null) {
@@ -222,12 +222,33 @@ const server = Bun.serve<undefined>({
               };
             }
 
+            if (target.type === Units.CASTLE) {
+              if (target.owner !== origin.owner) {
+                server.publish(
+                  msg.roomId,
+                  JSON.stringify({
+                    type: ServerMessage.GAME_OVER,
+                    username: origin.owner
+                  })
+                )
+                setTimeout(() => {
+                  room.players
+                    .keys()
+                    .forEach(
+                      (username) => room.players.delete(username)
+                    )
+                    rooms.delete(msg.roomId);
+                }, 3000)
+                break;
+              }
+            }
+
             if (target.type === Units.TOWER) {
               if (target.owner === origin.owner) {
-                throw new Error('❌ You cannot destroy your own tower')
+                throw new Error('You cannot destroy your own tower')
               }
               else if (origin.size <= target.size) {
-                throw new Error('❌ This unit is too weak to destroy this tower.')
+                throw new Error('This unit is too weak to destroy this tower.')
               }
               else {
                 gameState.grid[msg.position.y][msg.position.x] = {
@@ -285,7 +306,7 @@ const server = Bun.serve<undefined>({
         }
 
         } catch ({message}: any) {
-        console.error("Error:", message);
+        // console.error("Error:", message);
         ws.send(
           JSON.stringify({
             type: ServerMessage.ERROR,

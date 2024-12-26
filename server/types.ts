@@ -12,6 +12,7 @@ export enum ServerMessage {
   PLAYER_JOINED = "PLAYER_JOINED",
   PLAYER_LEFT = "PLAYER_LEFT",
   GAME_STATE = "GAME_STATE",
+  GAME_OVER = "GAME_OVER",
   ERROR = "ERROR",
 }
 
@@ -88,6 +89,7 @@ export type ServerMessages =
   | { type: ServerMessage.PLAYER_JOINED; username: string }
   | { type: ServerMessage.PLAYER_LEFT; username: string }
   | { type: ServerMessage.GAME_STATE; state: GameState }
+  | { type: ServerMessage.GAME_OVER; username: string }
   | { type: ServerMessage.ERROR; message: string };
 
 export type ClientMessages =

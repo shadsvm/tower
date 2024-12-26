@@ -55,16 +55,28 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         console.debug(data.type, data)
       }
 
+
       switch (data.type) {
         case ServerMessage.ROOM_CREATED:
           set(store => ({
             state: {
               ...store.state,
               roomId: data.roomId,
-              messages: [...store.state.messages, 'Room created!']
+              messages: [...store.state.messages, '✅ Room created!']
             }
           }));
           break;
+
+        case ServerMessage.GAME_OVER:
+          setGame(undefined);
+          set(store => ({
+            state: {
+              ...store.state,
+              roomId: null,
+              messages: [`ℹ️ ${data.username} won!`]
+            }
+          }));
+        break;
 
         case ServerMessage.GAME_STATE:
           setGame(data.state);
@@ -72,7 +84,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             state: {
               ...store.state,
               roomId: store.state.roomId || data.state.roomId,
-              messages: [...store.state.messages, "Update!"]
+              messages: [...store.state.messages, `ℹ️ ${data.state.currentTurn} turn`]
             }
           }));
           break;
@@ -81,7 +93,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
           set(store => ({
             state: {
               ...store.state,
-              messages: [...store.state.messages, data.message]
+              messages: [...store.state.messages, '⚠️ ' + data.message]
             }
           }));
           break;
