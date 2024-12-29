@@ -1,11 +1,27 @@
 import type { ServerWebSocket } from "bun";
-import type { UnitsPrices } from "./constant";
+
+export const Config = {
+  gridSize: 6,
+  initialPoints: 10,
+  incrementPoints: 5
+} as const
 
 export enum Units {
   SOLDIER = 'SOLDIER',
   TOWER = 'TOWER',
   CASTLE = 'CASTLE'
 }
+
+export const UnitsPrices = {
+  [Units.SOLDIER]: 10,
+  [Units.TOWER]: 50,
+} as const;
+
+export const UnitsIcons = {
+  [Units.SOLDIER]: '🥷',
+  [Units.CASTLE]: '🏰',
+  [Units.TOWER]: '🗼',
+} as const
 
 export enum ServerMessage {
   ROOM_CREATED = "ROOM_CREATED",

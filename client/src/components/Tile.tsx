@@ -1,7 +1,6 @@
 import { MoveUnit } from "@/pages/Game";
 import { useGameStore } from "@/store/game";
-import { UnitsIcons } from "@server/constant";
-import { BuyableUnits, Position, Tile as TileType, Units } from "@server/types";
+import { BuyableUnits, Position, Tile as TileType, Units, UnitsIcons } from "@server/types";
 import { getAdjacentTiles } from "@server/utils";
 import { ComponentProps, useMemo } from "react";
 

@@ -1,8 +1,7 @@
 import { useGameStore } from "@/store/game";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { UnitsIcons, UnitsPrices } from "@server/constant";
-import { BuyableUnits, ClientMessage } from "@server/types";
+import { BuyableUnits, ClientMessage, UnitsIcons, UnitsPrices } from "@server/types";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 
 export default function ActionPanel({

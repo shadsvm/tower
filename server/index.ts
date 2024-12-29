@@ -1,20 +1,17 @@
 import { nanoid } from "nanoid";
-import { UnitsPrices } from "./constant";
-import {
-    getState,
-    init,
-    setState,
-} from "./init";
 import {
     ClientMessage,
     ServerMessage,
     Units,
+    UnitsPrices,
     type ClientMessages,
+    type GameState,
     type Room
 } from "./types";
-import { endTurn, getAdjacentTiles } from "./utils";
+import { endTurn, getAdjacentTiles, init } from "./utils";
 
 const rooms = new Map<string, Room>();
+const state = new Map<string, GameState>();
 
 const server = Bun.serve<undefined>({
   // development: true,
@@ -28,9 +25,9 @@ const server = Bun.serve<undefined>({
   },
   fetch(req) {
     const url = new URL(req.url);
+    // When upgrade succeeds, we need to return undefined explicitly
     if (server.upgrade(req)) {
       return undefined;
-      // When upgrade succeeds, we need to return undefined explicitly
     }
 
     if (url.pathname === "/") {
@@ -81,7 +78,7 @@ const server = Bun.serve<undefined>({
 
             // Initialize and start game immediately
             const gameState = init(room);
-            setState(room.id, gameState);
+            state.set(room.id, gameState);
             room.state = "playing";
 
             // Notify everyone in room
@@ -99,7 +96,7 @@ const server = Bun.serve<undefined>({
             const room = rooms.get(msg.roomId);
             if (!room) return;
 
-            const gameState = getState(room.id);
+            const gameState = state.get(room.id);
             if (!gameState) return;
 
 
@@ -109,7 +106,7 @@ const server = Bun.serve<undefined>({
 
             const newState = endTurn(gameState)
             // Store and broadcast new state
-            setState(room.id, newState);
+            state.set(room.id, newState);
             server.publish(
               msg.roomId,
               JSON.stringify({
@@ -123,7 +120,7 @@ const server = Bun.serve<undefined>({
             const room = rooms.get(msg.roomId);
             if (!room) return;
 
-            const gameState = getState(room.id);
+            const gameState = state.get(room.id);
             if (!gameState) return;
 
 
@@ -170,7 +167,7 @@ const server = Bun.serve<undefined>({
                 };
 
               const newState = endTurn(gameState)
-              setState(room.id, newState);
+              state.set(room.id, newState);
               server.publish(
                 msg.roomId,
                 JSON.stringify({
@@ -186,7 +183,7 @@ const server = Bun.serve<undefined>({
             const room = rooms.get(msg.roomId);
             if (!room) return;
 
-            const gameState = getState(room.id);
+            const gameState = state.get(room.id);
             if (!gameState) return;
 
             if (gameState.currentTurn !== msg.username) {
@@ -293,7 +290,7 @@ const server = Bun.serve<undefined>({
             }
 
             const newState = endTurn(gameState)
-            setState(room.id, newState);
+            state.set(room.id, newState);
             server.publish(
               msg.roomId,
               JSON.stringify({
