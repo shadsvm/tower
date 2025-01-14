@@ -47,10 +47,10 @@ const server = Bun.serve<undefined>({
             const roomId = nanoid(6);
             const room: Room = {
               id: roomId,
-              players: new Map([
-                [msg.username, { username: msg.username, ws }]
-              ]),
               state: "waiting",
+              players: new Map([
+                [msg.username, ws ]
+              ]),
             };
 
             rooms.set(roomId, room);
@@ -72,7 +72,7 @@ const server = Bun.serve<undefined>({
             }
 
             // Second player joins
-            room.players.set(msg.username, { username: msg.username, ws });
+            room.players.set(msg.username, ws);
             // Now matches RoomPlayer type
             ws.subscribe(msg.roomId);
 
@@ -315,8 +315,8 @@ const server = Bun.serve<undefined>({
 
     close(ws) {
       for (const [roomId, room] of rooms.entries()) {
-        for (const [username, player] of room.players.entries()) {
-          if (player.ws === ws) {
+        for (const [username, usersocket] of room.players.entries()) {
+          if (ws === usersocket) {
             server.publish(
               roomId,
               JSON.stringify({

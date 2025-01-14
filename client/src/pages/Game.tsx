@@ -3,7 +3,14 @@ import Tile from "@/components/Tile";
 import { useGameStore } from "@/store/game";
 import { useSocketStore } from "@/store/socket";
 import { useUserStore } from "@/store/user";
-import { BuyableUnits, ClientMessage, MovableUnits, Position, Tile as TileType, Units } from "@server/types";
+import {
+  BuyableUnits,
+  ClientMessage,
+  MovableUnits,
+  Position,
+  Tile as TileType,
+  Units,
+} from "@server/types";
 import { useMemo, useState } from "react";
 
 export interface ActionResolve {
@@ -19,17 +26,24 @@ export interface MoveUnit {
 const initialMoveUnit = {
   unitType: Units.SOLDIER,
   position: undefined,
-} as const
+} as const;
 
 export default function Game() {
-  const {state} = useGameStore();
-  const {send} = useSocketStore();
-  const {username} = useUserStore();
+  const { state } = useGameStore();
+  const { send } = useSocketStore();
+  const { username } = useUserStore();
   const [buyUnit, setBuyUnit] = useState<BuyableUnits | undefined>(undefined);
-  const [moveUnit, setMoveUnit] = useState<MoveUnit>({...initialMoveUnit});
-  const disabled = useMemo(() => state?.currentTurn !== username, [username,state?.currentTurn])
+  const [moveUnit, setMoveUnit] = useState<MoveUnit>({ ...initialMoveUnit });
+  const disabled = useMemo(
+    () => state?.currentTurn !== username,
+    [username, state?.currentTurn]
+  );
 
-  function handleTileClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>, tile: TileType, position: Position){
+  function handleTileClick(
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    tile: TileType,
+    position: Position
+  ) {
     event.stopPropagation();
     if (buyUnit) {
       send({
@@ -37,40 +51,36 @@ export default function Game() {
         unitType: buyUnit,
         position,
       });
-      setBuyUnit(undefined)
-  } else
-      if (!moveUnit.position) {
-        if (tile.owner !== username || tile.type !== Units.SOLDIER) return;
-        setMoveUnit(prev => ({...prev, position}))
-      }
-      else if (JSON.stringify(moveUnit?.position) === JSON.stringify(position)) {
-        setMoveUnit(initialMoveUnit)
-      }
-      else {
-        send({
-          type: ClientMessage.MOVE_UNIT,
-          destination: position,
-          ...moveUnit
-        })
-        setMoveUnit(initialMoveUnit)
-      }
+      setBuyUnit(undefined);
+    } else if (!moveUnit.position) {
+      if (tile.owner !== username || tile.type !== Units.SOLDIER) return;
+      setMoveUnit((prev) => ({ ...prev, position }));
+    } else if (
+      JSON.stringify(moveUnit?.position) === JSON.stringify(position)
+    ) {
+      setMoveUnit(initialMoveUnit);
+    } else {
+      send({
+        type: ClientMessage.MOVE_UNIT,
+        destination: position,
+        ...moveUnit,
+      });
+      setMoveUnit(initialMoveUnit);
+    }
   }
 
-
-  if (state === undefined) return (<div>Something went wrong</div>);
+  if (state === undefined) return <div>Something went wrong</div>;
   return (
     <div className="space-y-5">
       <header className="  border-b-2 border-stone-500 py-2 flex justify-between items-center text-lg">
         <div className="flex-1 overflow-hidden inline-flex space-x-2">
           <p className="text-stone-300">Turn:</p>
-          <p className={disabled ? "text-error" : "text-info"}>{state.currentTurn}</p>
+          <p className={disabled ? "text-error" : "text-info"}>
+            {state.currentTurn}
+          </p>
         </div>
-        <div className="text-green-300">
-          {state.players[username].points}
-          $
-        </div>
+        <div className="text-green-300">{state.players[username].points}$</div>
       </header>
-
 
       <div
         className="flex flex-col items-center gap-4 z-10 "
@@ -80,22 +90,22 @@ export default function Game() {
           {state.grid.map((row, y) =>
             row.map((tile, x) => (
               <Tile
-                key={[x,y].join('-')}
-                onClick={(e) => handleTileClick(e, tile, {x,y})}
+                key={[x, y].join("-")}
+                onClick={(e) => handleTileClick(e, tile, { x, y })}
                 {...{
                   tile,
                   username,
                   disabled: !buyUnit,
                   buyUnit,
                   moveUnit,
-                  position: {x,y}
+                  position: { x, y },
                 }}
               />
-            )),
+            ))
           )}
         </div>
       </div>
-      <Actions {...{buyUnit, setBuyUnit}} />
+      <Actions {...{ buyUnit, setBuyUnit }} />
     </div>
   );
 }

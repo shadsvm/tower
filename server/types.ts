@@ -67,13 +67,12 @@ export type GameState = {
 };
 
 export type RoomPlayer = {
-  username: string;
   ws: ServerWebSocket;
 };
 
 export type Room = {
   id: string;
-  players: Map<string, RoomPlayer>; // Changed from Player to RoomPlayer
+  players: Map<string,ServerWebSocket>; // Changed from Player to RoomPlayer
   state: "waiting" | "playing";
 };
 
